@@ -1,5 +1,305 @@
-<html>
-<body>
-Hello!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datadog Dashboard – Fixed & Clean</title>
+
+  <!-- Chart.js v4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <link rel="stylesheet" href="skins/style.css" media="all">
+</head>
+
+<body data-theme="light">
+
+<div id="loading-popup"><div class="spinner"></div><span id="loading-text">Loading...</span></div>
+
+<header class="header">
+  <div class="logo" id="dashboard-name">ReSequel</div>
+  <!-- <div>
+    <select class="time-select" id="global-time">
+      <option value="5m">Last 5m</option>
+      <option value="1h" selected>Last 1h</option>
+      <option value="6h">Last 6h</option>
+      <option value="24h">Last 24h</option>
+    </select>
+  </div> -->
+</header>
+
+<div id="settings-float" onclick="toggleSettings()">
+  <i data-feather="settings"></i>
+</div>
+
+<div id="settings-panel">
+  <!-- <span class="close-settings" onclick="toggleSettings()">X</span> -->
+  <span class="close-settings" onclick="toggleSettings()">
+    <i data-feather="x" style="width:18px;height:18px;"></i>
+  </span>
+  <h3>Settings</h3>
+
+    <div class="setting"><label>LLM Model</label>
+    <select id="set-llm">
+      <option disabled>Google</option>
+      <option value="gemini-2.5-pro">Gemini-2.5-pro</option>
+      <option value="gemini-flash-latest">Gemini-flash-latest</option>      
+      <option disabled>OpenAI</option>
+      <option value="gpt-oss-20b">gpt-oss-20b</option>
+      <option value="gpt-oss-120b">gpt-oss-120b</option>
+    </select></div>
+
+  <div class="setting"><label>API Key:</label>
+  <textarea id="set-llm" placeholder="e.g. gemini API key" rows="3" style="resize:vertical;"></textarea>
+  </div>
+
+  <div class="setting">
+    <label>Number of Versions:</label>
+    <div class="range-container">
+      <div class="range-label"><span>1</span></div>
+      <input type="range" id="set-refresh-range" min="1" max="30" step="1" value="10">
+      <div class="range-label"><span id="range-val">10</span></div>
+    </div>
+  </div>
+</div>
+
+<main class="dashboard">
+  <!-- All groups (unchanged) -->
+  <section class="group"><div class="group-header" onclick="toggleGroup(this)">Infrastructure Health <span>Down Arrow</span></div>
+    <div class="group-content">
+      <div class="widget half"><div class="widget title">CPU Usage %</div><canvas id="cpuLine"></canvas></div>
+      <div class="widget half"><div class="widget title">Memory Breakdown</div><canvas id="memArea"></canvas></div>
+      <div class="widget third"><div class="widget title">Disk I/O (MB/s)</div><canvas id="diskBar"></canvas></div>
+      <div class="widget third"><div class="widget title">Load Average</div><canvas id="loadGauge"></canvas></div>
+      <div class="widget third"><div class="widget title">Active Hosts</div><div class="kpi-value" id="kpi-hosts">0</div><div>Up <span id="host-trend">0%</span></div></div>
+      <div class="widget full"><div class="widget title">Host CPU Heatmap (last hour)</div><table class="heatmap" id="cpuHeatmap"><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="group"><div class="group-header" onclick="toggleGroup(this)">Application Metrics <span>Down Arrow</span></div>
+    <div class="group-content">
+      <div class="widget half"><div class="widget title">Error Rate %</div><canvas id="errorLine"></canvas></div>
+      <div class="widget half"><div class="widget title">Request Distribution</div><canvas id="reqPie"></canvas></div>
+      <div class="widget full"><div class="widget title">Top 5 Endpoints by Latency</div><table id="topEndpoints"><thead><tr><th>Endpoint</th><th>Avg ms</th><th>Calls</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="group"><div class="group-header" onclick="toggleGroup(this)">Network & Topology <span>Down Arrow</span></div>
+    <div class="group-content">
+      <div class="widget half"><div class="widget title">Network In/Out (Mbps)</div><canvas id="netLine"></canvas></div>
+      <div class="widget half" id="topology"><div class="widget title">Service Map</div><svg viewBox="0 0 400 180"></svg></div>
+      <div class="widget full"><div class="widget title">Latency Distribution (ms)</div><canvas id="latencyDist"></canvas></div>
+    </div>
+  </section>
+
+  <section class="group"><div class="group-header" onclick="toggleGroup(this)">Recent Events <span>Down Arrow</span></div>
+    <div class="group-content">
+      <div class="widget full"><table id="eventList"><thead><tr><th>Time</th><th>Host</th><th>Message</th><th>Severity</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="group"><div class="group-header" onclick="toggleGroup(this)">SQL Playground <span>Down Arrow</span></div>
+    <div class="group-content">
+      <div class="widget half"><div class="widget title">Notes</div><textarea id="notes-textarea" placeholder="Write your notes here..."></textarea></div>
+      <div class="widget half"><div class="widget title">Sample Query</div>
+        <pre class="sql-code"><code><span class="sql-comment">-- Get top 10 slow queries</span>
+<span class="sql-keyword">SELECT</span> query, <span class="sql-function">AVG</span>(duration_ms) <span class="sql-keyword">AS</span> avg_ms, <span class="sql-function">COUNT</span>(*) <span class="sql-keyword">AS</span> calls
+<span class="sql-keyword">FROM</span> <span class="sql-table">slow_queries</span>
+<span class="sql-keyword">WHERE</span> timestamp > <span class="sql-string">'2025-11-01'</span>
+<span class="sql-keyword">GROUP BY</span> query
+<span class="sql-keyword">ORDER BY</span> avg_ms <span class="sql-keyword">DESC</span>
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;</code></pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// === ALL FUNCTIONS AT THE TOP (HOISTED) ===
+feather.replace();
+
+function showLoading(m='Loading...'){document.getElementById('loading-text').textContent=m;document.getElementById('loading-popup').classList.add('show');}
+function hideLoading(){document.getElementById('loading-popup').classList.remove('show');}
+
+function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+d*24*60*60*1000);document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/`;}
+function getCookie(n){const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):null;}
+
+function toggleTheme(){
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+  document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-label').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+  const iconEl = document.querySelector('#settings-panel i[data-feather]');
+  if (iconEl) iconEl.setAttribute('data-feather', isDark ? 'moon' : 'sun');
+  feather.replace();
+}
+function toggleSettings(){document.getElementById('settings-panel').classList.toggle('open');}
+function toggleGroup(el){const c=el.nextElementSibling;c.classList.toggle('active');el.querySelector('span').textContent=c.classList.contains('active')?'Up Arrow':'Down Arrow';}
+
+// Slider
+const range = document.getElementById('set-refresh-range');
+const rangeVal = document.getElementById('range-val');
+function updateSlider(){const val=range.value;rangeVal.textContent=val+' Version(s)';const p=((val-1)/29)*100;range.style.setProperty('--progress',p+'%');}
+range.addEventListener('input',updateSlider);
+updateSlider();
+
+// Settings
+const s={name:document.getElementById('set-name'),range:range,rangeVal:rangeVal,
+        time:document.getElementById('set-time-range'),auto:document.getElementById('auto-refresh')};
+
+async function loadSettings(){
+  showLoading('Loading settings...');
+  await new Promise(r=>setTimeout(r,300));
+  const v={name:getCookie('dashName')||'Datadog Demo',refresh:parseInt(getCookie('dashRefresh'))||10,
+           time:getCookie('dashTime')||'1h',auto:getCookie('dashAuto')!=='false',notes:getCookie('dashNotes')||''};
+  document.getElementById('dashboard-name').textContent=v.name; s.name.value=v.name;
+  s.range.value=v.refresh; updateSlider();
+  s.time.value=v.time; document.getElementById('global-time').value=v.time;
+  s.auto.checked=v.auto;
+  document.getElementById('notes-textarea').value = v.notes;
+  startRefresh(v.auto?v.refresh*1000:0);
+  hideLoading();
+}
+async function saveSettings(){
+  showLoading('Saving...');
+  await new Promise(r=>setTimeout(r,200));
+  setCookie('dashName',s.name.value); setCookie('dashRefresh',s.range.value);
+  setCookie('dashTime',s.time.value); setCookie('dashAuto',s.auto.checked);
+  setCookie('dashNotes', document.getElementById('notes-textarea').value);
+  document.getElementById('dashboard-name').textContent=s.name.value;
+  document.getElementById('global-time').value=s.time.value;
+  startRefresh(s.auto.checked?s.range.value*1000:0);
+  hideLoading();
+}
+
+s.name.addEventListener('change',saveSettings);
+s.range.addEventListener('change',saveSettings);
+s.time.addEventListener('change',saveSettings);
+s.auto.addEventListener('change',saveSettings);
+document.getElementById('global-time').addEventListener('change',e=>{s.time.value=e.target.value;saveSettings();});
+document.getElementById('notes-textarea').addEventListener('input',()=>{clearTimeout(window.notesTimer);window.notesTimer=setTimeout(saveSettings,800);});
+
+let refreshInterval=null;
+function startRefresh(ms){
+  if(refreshInterval)clearInterval(refreshInterval);
+  if(ms>0){
+    showLoading(`Refresh every ${ms/1000}s...`);
+    setTimeout(()=>{refreshInterval=setInterval(updateAll,ms);hideLoading();},300);
+  }
+}
+
+function buildWidgetToggles(){
+  const c=document.getElementById('widget-toggles');
+  document.querySelectorAll('.widget').forEach((w,i)=>{const id=`w${i}`;w.dataset.id=id;
+    const t=w.querySelector('.title')?.textContent||`Widget ${i+1}`;
+    c.innerHTML+=`<label><input type="checkbox" data-id="${id}" checked> ${t}</label><br>`;});
+}
+buildWidgetToggles();
+document.addEventListener('change',e=>{if(e.target.matches('input[data-id]')){const w=document.querySelector(`.widget[data-id="${e.target.dataset.id}"]`);w.style.display=e.target.checked?'':'none';}});
+
+// === MOCK DATA ===
+const rand=(a,b)=>Math.random()*(b-a)+a;
+const randInt=(a,b)=>Math.floor(rand(a,b));
+const hosts=Array.from({length:12},(_,i)=>`host-${i+1}`);
+let cpu=[],mem=[],disk=[],netIn=[],netOut=[],err=[];
+
+function initData(){
+  const now=Date.now();
+  for(let i=30;i>=0;i--){
+    const t=now-i*10000;
+    cpu.push({x:t,y:rand(20,80)});
+    mem.push({used:rand(35,75),cached:rand(10,30),free:rand(5,20)});
+    disk.push({read:rand(5,55),write:rand(5,45)});
+    netIn.push({x:t,y:rand(40,320)});
+    netOut.push({x:t,y:rand(30,280)});
+    err.push({x:t,y:rand(0,1.8)});
+  }
+}
+initData();
+
+// === GAUGE (native doughnut) ===
+function createGauge(ctx, value, max = 10) {
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: { datasets: [{ data: [value, max - value], backgroundColor: ['#00AEEF', '#444'], borderWidth: 0, circumference: 180, rotation: 270, cutout: '80%' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false }, legend: { display: false } } },
+    plugins: [{
+      id: 'gaugeText',
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea: { width, height } } = chart;
+        ctx.save();
+        ctx.font = 'bold 1.2rem sans-serif';
+        ctx.fillStyle = '#00AEEF';
+        ctx.textAlign = 'center';
+        ctx.fillText(value.toFixed(2), width / 2, height - 10);
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// === UPDATE ALL (NOW DEFINED BEFORE USE) ===
+function updateAll(){
+  const now=Date.now();
+  const cv=rand(20,85);cpu.push({x:now,y:cv});if(cpu.length>60)cpu.shift();Chart.getChart('cpuLine').data.datasets[0].data=cpu;Chart.getChart('cpuLine').update('none');
+  const m={used:rand(35,75),cached:rand(10,30),free:rand(5,20)};mem.push({x:now,...m});if(mem.length>60)mem.shift();
+  const memArea=Chart.getChart('memArea');memArea.data.datasets.forEach((ds,i)=>ds.data=mem.map(d=>({x:d.x,y:d[['used','cached','free'][i]]})));memArea.update('none');
+  const dr=rand(5,55),dw=rand(5,45);disk.push({read:dr,write:dw});if(disk.length>6)disk.shift();
+  const diskBar=Chart.getChart('diskBar');diskBar.data.labels=disk.map((_,i)=>`-${i*10}s`);
+  diskBar.data.datasets[0].data=disk.map(d=>d.read);diskBar.data.datasets[1].data=disk.map(d=>d.write);diskBar.update('none');
+  const gauge = Chart.getChart('loadGauge'); const val = rand(0,9.5); gauge.data.datasets[0].data = [val, 10 - val]; gauge.update('none');
+  document.getElementById('kpi-hosts').textContent=randInt(35,48);
+  document.getElementById('host-trend').textContent=`${rand(-5,12).toFixed(1)}%`;
+  const ev=rand(0,1.8);err.push({x:now,y:ev});if(err.length>60)err.shift();Chart.getChart('errorLine').data.datasets[0].data=err;Chart.getChart('errorLine').update('none');
+  const ni=rand(40,320),no=rand(30,280);netIn.push({x:now,y:ni});netOut.push({x:now,y:no});
+  if(netIn.length>60){netIn.shift();netOut.shift();}
+  const netLine=Chart.getChart('netLine');netLine.data.datasets[0].data=netIn;netLine.data.datasets[1].data=netOut;netLine.update('none');
+}
+
+// === DOM READY ===
+document.addEventListener('DOMContentLoaded', async () => {
+  showLoading('Initializing...');
+  await new Promise(r => setTimeout(r, 400));
+  await loadSettings();
+
+  // === ICONS & THEME ===
+  feather.replace();  // Must be BEFORE accessing <i> elements
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+  document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  const iconEl = document.querySelector('#settings-panel i[data-feather]');
+  if (iconEl) iconEl.setAttribute('data-feather', isDark ? 'sun' : 'moon');
+  feather.replace();
+
+  // === CHARTS ===
+  const opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, animation: { duration: 0 } };
+  new Chart('cpuLine', { type: 'line', data: { datasets: [{ label: 'CPU %', borderColor: '#00AEEF', backgroundColor: '#00AEEF20', fill: false, tension: .2, data: cpu }] }, options: { ...opt, scales: { x: { type: 'time', time: { unit: 'minute' } }, y: { beginAtZero: true, max: 100 } } } });
+  new Chart('memArea', { type: 'line', data: { datasets: [
+    { label: 'Used', backgroundColor: '#00AEEF80', data: mem.map(d=>({x:d.x,y:d.used})) },
+    { label: 'Cached', backgroundColor: '#ffeb3b80', data: mem.map(d=>({x:d.x,y:d.cached})) },
+    { label: 'Free', backgroundColor: '#4caf5080', data: mem.map(d=>({x:d.x,y:d.free})) }
+  ]}, options: { ...opt, scales: { x: { type: 'time', time: { unit: 'minute' } }, y: { stacked: true } } } });
+  new Chart('diskBar', { type: 'bar', data: { labels: [], datasets: [{ label: 'Read', backgroundColor: '#00AEEF', data: [] }, { label: 'Write', backgroundColor: '#ff5722', data: [] }] }, options: { ...opt, scales: { y: { beginAtZero: true } } } });
+  createGauge(document.getElementById('loadGauge'), 0);
+  new Chart('errorLine', { type: 'line', data: { datasets: [{ label: 'Error %', borderColor: '#ff5722', backgroundColor: '#ff572220', fill: false, tension: .2, data: err }] }, options: { ...opt, scales: { x: { type: 'time', time: { unit: 'minute' } }, y: { beginAtZero: true, max: 5 } } } });
+  new Chart('netLine', { type: 'line', data: { datasets: [
+    { label: 'In', borderColor: '#4caf50', backgroundColor: '#4caf5020', fill: true, data: netIn },
+    { label: 'Out', borderColor: '#f44336', backgroundColor: '#f4433620', fill: true, data: netOut }
+  ]}, options: { ...opt, scales: { x: { type: 'time', time: { unit: 'minute' } } } } });
+  new Chart('reqPie', { type: 'doughnut', data: { labels: ['GET','POST','PUT','DELETE'], datasets: [{ data: [60,25,10,5], backgroundColor: ['#00AEEF','#ffeb3b','#ff5722','#4caf50'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+  new Chart('latencyDist', { type: 'bar', data: { labels: ['0-50','50-100','100-200','200-500','500+'], datasets: [{ label: 'Requests', backgroundColor: '#00AEEF', data: [120,85,45,20,5] }] }, options: { ...opt, scales: { y: { beginAtZero: true } } } });
+
+  // === OTHER WIDGETS ===
+  function renderHeatmap(){const tb=document.querySelector('#cpuHeatmap tbody');tb.innerHTML='';for(let r=0;r<4;r++){const tr=document.createElement('tr');for(let c=0;c<hosts.length;c++){const v=randInt(10,95);const td=document.createElement('td');td.className=v<40?'low':v<70?'mid':'high';td.innerHTML=`<span class="val">${v}</span>`;tr.appendChild(td);}tb.appendChild(tr);}} renderHeatmap();
+  function renderTopEndpoints(){const eps=['/api/users','/api/orders','/health','/api/search','/login'];const tb=document.querySelector('#topEndpoints tbody');tb.innerHTML='';eps.sort(()=>Math.random()-.5).slice(0,5).forEach(ep=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${ep}</td><td>${randInt(50,300)}</td><td>${randInt(100,5000)}</td>`;tb.appendChild(tr);});} renderTopEndpoints();
+  function renderTopology(){const svg=document.querySelector('#topology svg');svg.innerHTML='';const sv=['frontend','api-gateway','auth','orders','inventory','db'];const cx=200,cy=90,r=70;sv.forEach((n,i)=>{const a=i*Math.PI*2/sv.length;const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);svg.innerHTML+=`<circle cx="${x}" cy="${y}" r="18" fill="#00AEEF" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+5}" fill="#fff" font-size="12" text-anchor="middle">${n.slice(0,3)}</text>`;});for(let i=0;i<8;i++){const a=randInt(0,sv.length),b=randInt(0,sv.length);if(a===b)continue;const ax=cx+r*Math.cos(a*Math.PI*2/sv.length),ay=cy+r*Math.sin(a*Math.PI*2/sv.length);const bx=cx+r*Math.cos(b*Math.PI*2/sv.length),by=cy+r*Math.sin(b*Math.PI*2/sv.length);svg.innerHTML+=`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#666" stroke-width="1.5"/>`;}} renderTopology();
+  function addEvent(){const tb=document.querySelector('#eventList tbody');const sev=['Info','Warning','Alert'][randInt(0,3)];const col=sev==='Info'?'#4caf50':sev==='Warning'?'#ffeb3b':'#f44336';const m=randInt(0,59);const tr=document.createElement('tr');tr.innerHTML=`<td>${m}m ago</td><td>${hosts[randInt(0,hosts.length)]}</td><td>Event #${randInt(1000,9999)}</td><td style="color:${col}">${sev}</td>`;tb.insertBefore(tr,tb.firstChild);if(tb.children.length>15)tb.removeChild(tb.lastChild);} for(let i=0;i<8;i++)addEvent();
+
+  document.querySelectorAll('.group-header').forEach(h=>h.click());
+  hideLoading();
+});
+</script>
 </body>
 </html>
