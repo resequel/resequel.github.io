@@ -13,7 +13,14 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/feather-icons"></script>
 
+  <script src="scripts/APIs.js"></script>
+
   <link rel="stylesheet" href="skins/style.css" media="all">
+  <link rel="stylesheet" href="skins/style-schema.css" media="all">
+
+<!--<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
+  <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>
+
 
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3ET25DPYQ7"></script>
@@ -32,7 +39,7 @@
 <div id="loading-popup"><div class="spinner"></div><span id="loading-text">Loading...</span></div>
 
 <header class="header">
-  <div class="logo" id="dashboard-name">ReSequel</div>
+  <div class="logo" id="dashboard-name">ReSequel Demo</div>
   <!-- <div>
     <select class="time-select" id="global-time">
       <option value="5m">Last 5m</option>
@@ -54,18 +61,31 @@
   </span>
   <h3>Settings</h3>
 
-    <div class="setting"><label>LLM Model</label>
-    <select id="set-llm">
-      <option disabled>Google</option>
-      <option value="gemini-2.5-pro">Gemini-2.5-pro</option>
-      <option value="gemini-flash-latest">Gemini-flash-latest</option>      
-      <option disabled>OpenAI</option>
-      <option value="gpt-oss-20b">gpt-oss-20b</option>
-      <option value="gpt-oss-120b">gpt-oss-120b</option>
-    </select></div>
+    <div class="setting"><label>LLM Model:</label>
+      <select id="set-llm">
+        <option disabled>Google</option>
+        <option value="gemini-2.5-pro">Gemini-2.5-pro</option>
+        <option value="gemini-flash-latest">Gemini-flash-latest</option>
+        <option disabled>OpenAI</option>
+        <option value="gpt-oss-20b">gpt-oss-20b</option>
+        <option value="gpt-oss-120b">gpt-oss-120b</option>
+      </select>
+    </div>
 
   <div class="setting"><label>API Key:</label>
-  <textarea id="set-llm" placeholder="e.g. gemini API key" rows="3" style="resize:vertical;"></textarea>
+  <textarea id="APIKey" placeholder="e.g. gemini API key" rows="3" style="resize:vertical; width: 100%"></textarea>
+  </div>
+
+  <div class="setting"><label>Workloads and Datasets:</label>
+      <select id="workload-dataset">
+        <option value="IMDB-JOB">IMDB-JOB (113 queries)</option>
+        <option value="IMDB-Full">IMDB-Full (13k queries)</option>
+        <option value="STATS">Stats (146 queries)</option>
+        <option value="StackOverflow">StackOverflow (1190 queries)</option>
+        <option value="DSB-SF10">DSB (sf=10, 52 queries)</option>
+        <option value="DSB-SF10-S100">DSB (sf=10, Stream=100, 52 queries)</option>
+        <option value="TPCH-SF10">TPC-H (sf=10, 22 queries)</option>
+      </select>
   </div>
 
   <div class="setting">
@@ -77,14 +97,25 @@
     </div>
   </div>
 
-    <div class="setting">
+  <div class="setting">
     <button class="theme-btn" onclick="toggleTheme()">
       <i data-feather="sun"></i> <span id="theme-label">Light Mode</span>
+    </button>
+  </div>
+
+  <div class="setting">
+    <button class="theme-save" onclick="callGetCatalogAPI()">
+      <i data-feather="save"></i> <span id="save-setting">Save</span>
     </button>
   </div>
 </div>
 
 <main class="dashboard">
+<!--  <div id="result" class="masonry">-->
+<!--        &lt;!&ndash; The output of the JS function (HTML from API) will appear here &ndash;&gt;-->
+<!--        <p style="color: #888; text-align: center;">Select a dataset and click "Load Schema" to view the table structures.</p>-->
+<!--    </div>-->
+<div id="result"></div>
   <!-- All groups (unchanged) -->
   <section class="group"><div class="group-header" onclick="toggleGroup(this)">Infrastructure Health <span>Down Arrow</span></div>
     <div class="group-content">
@@ -97,7 +128,7 @@
     </div>
   </section>
 
-  <section class="group"><div class="group-header" onclick="toggleGroup(this)">Application Metrics <span>Down Arrow</span></div>
+  <!-- <section class="group"><div class="group-header" onclick="toggleGroup(this)">Application Metrics <span>Down Arrow</span></div>
     <div class="group-content">
       <div class="widget half"><div class="widget title">Error Rate %</div><canvas id="errorLine"></canvas></div>
       <div class="widget half"><div class="widget title">Request Distribution</div><canvas id="reqPie"></canvas></div>
@@ -117,9 +148,9 @@
     <div class="group-content">
       <div class="widget full"><table id="eventList"><thead><tr><th>Time</th><th>Host</th><th>Message</th><th>Severity</th></tr></thead><tbody></tbody></table></div>
     </div>
-  </section>
+  </section> -->
 
-  <section class="group"><div class="group-header" onclick="toggleGroup(this)">SQL Playground <span>Down Arrow</span></div>
+  <!-- <section class="group"><div class="group-header" onclick="toggleGroup(this)">SQL Playground <span>Down Arrow</span></div>
     <div class="group-content">
       <div class="widget half"><div class="widget title">Notes</div><textarea id="notes-textarea" placeholder="Write your notes here..."></textarea></div>
       <div class="widget half"><div class="widget title">Sample Query</div>
@@ -132,7 +163,7 @@
 <span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;</code></pre>
       </div>
     </div>
-  </section>
+  </section> -->
 </main>
 
 <script>

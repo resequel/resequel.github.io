@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        input, button { padding: 8px; margin: 5px; font-size: 16px; }
+        button { cursor: pointer; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Call Flask API</h1>
+    <div>
+        <label>Name: <input type="text" id="name" placeholder="John Doe"></label><br><br>
+        <label>Age: <input type="text" id="age" placeholder="30"></label><br><br>
+        <label>City: <input type="text" id="city" placeholder="New York"></label><br><br>
+
+        <button onclick="callApi()">Send to API</button>
+    </div>
+
+    <h2>API Response:</h2>
+    <pre id="result">No response yet...</pre>
+
+    <script>
+        async function callApi() {
+            const name = document.getElementById('name').value.trim();
+            const age = document.getElementById('age').value.trim();
+            const city = document.getElementById('city').value.trim();
+
+            if (!name || !age || !city) {
+                document.getElementById('result').textContent = 'Please fill in all fields!';
+                return;
+            }
+
+            const payload = {
+                name: name,
+                age: age,
+                city: city
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:9000/get_catalog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('result').textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Network error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
