@@ -16,7 +16,46 @@ async function callGetCatalogAPI() {
                     body: JSON.stringify(payload)
                 });
 
-                //const data = await response.text();//await response.json();
+                if (response.ok) {
+                    const figs = await response.json();
+                    Object.entries(figs.figures).forEach(([key, fig]) => {
+                        const targetDiv = document.getElementById(key);
+                        if (!targetDiv) {
+                            console.warn(`Div with id="${key}" not found`);
+                            return;
+                        }
+                    targetDiv.innerHTML = "";
+                    Plotly.newPlot(targetDiv, fig.data, fig.layout, { responsive: true, displayModeBar: false });
+                    const resizeObserver = new ResizeObserver(() => {Plotly.Plots.resize(targetDiv);});
+                    resizeObserver.observe(targetDiv);
+
+                    callGetWorkloadAPI();
+                });
+                } else {
+                    document.getElementById('result').textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Network error: ' + error.message;
+            }
+        }
+
+async function callGetWorkloadAPI() {
+            const dataset_name = document.getElementById('workload-dataset').value.trim();
+            if (!dataset_name) {
+                document.getElementById('result').textContent = 'Please Select a Workload!';
+                return;
+            }
+
+            const payload = { dataset_name: dataset_name};
+
+            try {
+                const response = await fetch('http://127.0.0.1:9000/get_workload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
                 if (response.ok) {
                     const figs = await response.json();
@@ -30,9 +69,8 @@ async function callGetCatalogAPI() {
                     Plotly.newPlot(targetDiv, fig.data, fig.layout, { responsive: true, displayModeBar: false });
                     const resizeObserver = new ResizeObserver(() => {Plotly.Plots.resize(targetDiv);});
                     resizeObserver.observe(targetDiv);
-        });
 
-                    //-----------------
+                });
                 } else {
                     document.getElementById('result').textContent = 'Error: ' + JSON.stringify(data, null, 2);
                 }

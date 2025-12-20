@@ -1,5 +1,6 @@
 
 _catalog_path: str = "/home/saeed/Documents/Github/ReSQL/Experiments/catalog/"
+_workload_path: str = "/home/saeed/Documents/Github/ReSQL/Experiments/workload/"
 
 # import os
 
