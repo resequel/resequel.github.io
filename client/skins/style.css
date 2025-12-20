@@ -1,3 +1,37 @@
+/* Inter Font */
+            @font-face {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 300;
+                font-display: swap;
+                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-300.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 400;
+                font-display: swap;
+                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-regular.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 500;
+                font-display: swap;
+                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-500.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 600;
+                font-display: swap;
+                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-600.woff2') format('woff2');
+            }
+
+
 :root {
     --bg: #1e1e1e;
     --card-bg: #2d2d2d;
@@ -20,7 +54,7 @@
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
@@ -131,34 +165,85 @@ body {
     }
 }
 
+/* ---------- Card container ---------- */
 .group {
-    background: var(--card-bg);
+    background: #fcd5d575;
     border: 1px solid var(--border);
     border-radius: 8px;
-    /* overflow: hidden; */
 }
 
+/* ---------- Two-column layout ---------- */
+.group-grid {
+    display: grid;
+    /*grid-template-columns: repeat(2, minmax(0, 1fr));*/
+    grid-template-columns: 2fr 3fr; /* 40% / 60% */
+    gap: 24px;
+    width: 100%;
+    align-items: start;
+}
+
+/* Stack on small screens */
+@media (max-width: 900px) {
+    .group-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Column wrapper ---------- */
+.group-column {
+    background: #fff;
+    border: 1px solid #e60000;
+    border-radius: 10px;
+    min-width: 0; /* REQUIRED for Plotly + CSS Grid */
+}
+
+/* ---------- Header ---------- */
 .group-header {
-    padding: .75rem 1rem;
-    background: var(--bg);
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    color: #e60000;
+    padding: 0.75rem 1rem;
+    background: #fcd5d575;
     font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #eee;
 }
 
-.group-header span {
-    transition: transform .2s;
+/* Smooth icon animation (optional) */
+.group-header svg {
+    transition: transform 0.2s ease;
 }
 
+/* ---------- Content ---------- */
 .group-content {
     display: none;
-    padding: 1rem;
+    /*padding: 1rem;*/
 }
 
 .group-content.active {
     display: block;
+}
+
+/* ---------- Grid inside content ---------- */
+.group-content.grid-2 {
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.group-content.grid-2.active {
+    display: grid;
+}
+
+/* ---------- Plot containers ---------- */
+.plot-box {
+    width: 100%;
+    min-height: 400px;
 }
 
 .widget {
@@ -529,5 +614,10 @@ canvas {
 .dot:hover {
   background: var(--accent);
   transform: scale(1.4);
+}
+
+.plot-box {
+    width: 100%;
+    min-height: 400px;
 }
 

@@ -19,15 +19,18 @@ async function callGetCatalogAPI() {
                 //const data = await response.text();//await response.json();
 
                 if (response.ok) {
-                    // document.getElementById('result').innerHTML = data
-                    const fig = await response.json();
-
-                    Plotly.newPlot(
-                        'result',
-                        fig.data,
-                        fig.layout,
-                        { responsive: true }
-                    );
+                    const figs = await response.json();
+                    Object.entries(figs.figures).forEach(([key, fig]) => {
+                        const targetDiv = document.getElementById(key);
+                        if (!targetDiv) {
+                            console.warn(`Div with id="${key}" not found`);
+                            return;
+                        }
+                    targetDiv.innerHTML = "";
+                    Plotly.newPlot(targetDiv, fig.data, fig.layout, { responsive: true, displayModeBar: false });
+                    const resizeObserver = new ResizeObserver(() => {Plotly.Plots.resize(targetDiv);});
+                    resizeObserver.observe(targetDiv);
+        });
 
                     //-----------------
                 } else {

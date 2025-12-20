@@ -6,8 +6,8 @@ import plotly.express as px
 from plotly.utils import PlotlyJSONEncoder
 import plotly.graph_objects as go
 
-
 catalog_bp = Blueprint("get_catalog", __name__)
+
 
 @catalog_bp.route('/get_catalog', methods=['POST'])
 def get_catalog():
@@ -31,7 +31,7 @@ def get_catalog():
         ds_name = ds_name.lower()
 
     catalog_path = f"{_catalog_path}/{ds_name}"
-    catalog =  load_catalog(catalog_path=catalog_path)
+    catalog = load_catalog(catalog_path=catalog_path)
 
     # ----------------------------------------------------
     sort_tables = dict()
@@ -49,6 +49,8 @@ def get_catalog():
     for table_name in sorted_dict.keys():
         data[table_name] = sorted_dict[table_name]
 
+    x_labels = list(data.keys())
+    y_values = list(data.values())
     # ----------------------------------------------------
     data_types = []
     data_type_tables = dict()
@@ -60,7 +62,7 @@ def get_catalog():
             if type_ != "Unknown":
                 data_types.append(type_)
                 if type_ in dt_dict:
-                    dt_dict[type_] +=1
+                    dt_dict[type_] += 1
                 else:
                     dt_dict[type_] = 1
         data_type_tables[tbl] = dt_dict
@@ -79,31 +81,11 @@ def get_catalog():
         dt_data.append(go.Bar(name=dt, x=catalog.get_table_names(), y=dt_y))
         print(f"{dt}  -> {dt_y}")
 
-
     fig_cols = go.Figure(data=dt_data)
-    # Change the bar mode
-    fig_cols.update_layout(barmode='stack',
-                           width=700,
-                           height=400,
-                           margin=dict(t=50, b=150, l=80, r=50),
-                        legend = dict(
-                            orientation="h",  # <-- horizontal
-                            yanchor="bottom",
-                            y=1.05,  # <-- place above plot
-                            xanchor="center",
-                            x=0.5
-                        )
-    )
 
-
-
-
-    fig_cols.write_html(f"/home/saeed/Documents//{dataset_name}.html", include_plotlyjs='cdn')
-    # ---------------------
-
-
-    x_labels = list(data.keys())
-    y_values = list(data.values())
+    fig_cols.update_xaxes(categoryorder="array", categoryarray=x_labels, tickangle=-45)
+    fig_cols.update_layout(barmode='stack', autosize=True, margin=dict(t=50, b=150, l=80, r=50),
+                           legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
 
     fig = px.bar(
         x=x_labels,
@@ -123,13 +105,16 @@ def get_catalog():
     fig.update_xaxes(categoryorder="array", categoryarray=x_labels, tickangle=-45)
 
     # Set chart background to white
-    fig.update_layout(
-        width=700,
-        height=400,
-        margin=dict(t=50, b=150, l=80, r=50)
-    )
+    fig.update_layout(autosize=True, margin=dict(t=50, b=150, l=80, r=50)
+                      )
+
+    payload = {"figures": {
+        "fig_table_cardinality": fig,
+        "fig_tables_dtype": fig_cols}
+    }
+
     return Response(
-        json.dumps(fig_cols, cls=PlotlyJSONEncoder),
+        json.dumps(payload, cls=PlotlyJSONEncoder),
         mimetype="application/json"
     )
 
@@ -185,7 +170,7 @@ def get_catalog():
 #     return jsonify(fig.to_dict())
 
 
-def generate_html_from_catalog(catalog_data:CatalogInfo):
+def generate_html_from_catalog(catalog_data: CatalogInfo):
     html_parts = []
     sort_tables = dict()
     for table_name in catalog_data.schema.keys():
@@ -220,7 +205,6 @@ def generate_html_from_catalog(catalog_data:CatalogInfo):
             if name in pks["primary_key"]:
                 card += f'<tr><td style="padding=0px">{pk_icon}</td><td>{name}</td><td>{type_}</td><td>{distinct_count}</td><td>{min_value}</td><td>{max_value}</td><td>{avg_value}</td> <td>{std_value}</td> </tr>'
 
-
         for col in columns:
             name = col.get('name', 'Unknown')
             if name in pks["primary_key"]:
@@ -232,7 +216,7 @@ def generate_html_from_catalog(catalog_data:CatalogInfo):
             std_value = profile[name].get('stddev', '')
             distinct_count = profile[name].get('distinct_count', 0)
             if name in pks["foreign_key"]:
-               card += f'<tr><td>{fk_icon}</td><td>{name}</td><td>{type_}</td><td>{distinct_count}</td> <td>{min_value}</td><td>{max_value}</td><td>{avg_value}</td> <td>{std_value}</td></tr>'
+                card += f'<tr><td>{fk_icon}</td><td>{name}</td><td>{type_}</td><td>{distinct_count}</td> <td>{min_value}</td><td>{max_value}</td><td>{avg_value}</td> <td>{std_value}</td></tr>'
             else:
                 card += f'<tr><td></td><td>{name}</td><td>{type_}</td><td>{distinct_count}</td><td>{min_value}</td><td>{max_value}</td><td>{avg_value}</td> <td>{std_value}</td></tr>'
 
