@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, make_response, Response
 from resequel.catalog.Catalog import load_catalog
 from resequel.catalog.Catalog import CatalogInfo
-from resequel.util.Config import load_query_params
+# from resequel.util.Config import load_query_params
 import json
 import plotly.express as px
 from plotly.utils import PlotlyJSONEncoder
@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 
 catalog_bp = Blueprint("get_catalog", __name__)
 workload_bp = Blueprint("get_workload", __name__)
+schema_bp = Blueprint("get_schema", __name__)
 
 
 @catalog_bp.route('/get_catalog', methods=['POST'])
@@ -112,6 +113,7 @@ def get_catalog():
         "fig_table_cardinality": fig,
         "fig_tables_dtype": fig_cols}
     }
+    print(payload)
 
     return Response(
         json.dumps(payload, cls=PlotlyJSONEncoder),
@@ -146,6 +148,7 @@ def get_workload():
     # _workload_path
     template_path = f"{_workload_path}/PostgreSQL/{ds_name}-template/"
     query_params = load_query_params(template_path=template_path)
+    # print(f">>>>>>>>>>>>> {ds_name} >>> {len(query_params)} >> {template_path}")
     template_cardinality = dict()
     for qp in query_params:
         (tid, params) = query_params[qp]
@@ -290,10 +293,6 @@ def get_workload():
         range=[0, max([len(query_params), len(sorted_items)]) * 1.1],
         tickformat="~s"  # 133,110,000 → 133M
     )
-    # fig.update_xaxes(categoryorder="array", categoryarray=x_labels, tickangle=-45)
-
-    # Set chart background to white
-    # fig_ratio.update_layout(autosize=True, margin=dict(t=50, b=150, l=80, r=50)
     fig_ratio.update_layout(
         showlegend=False,
         title_text=""  # remove title
@@ -310,6 +309,101 @@ def get_workload():
         mimetype="application/json"
     )
 
+@schema_bp.route('/get_schema', methods=['POST'])
+def get_schema():
+    from ..config import _catalog_path
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+
+    dataset_name = data.get('dataset_name', '').strip()
+    if not dataset_name:
+        return jsonify({"error": "Datasetname are required"}), 400
+    ds_name = dataset_name
+    if ds_name in ["IMDB-JOB", "IMDB-Full"]:
+        ds_name = "imdb"
+    elif ds_name in ["DSB-SF10", "DSB-SF10-S100"]:
+        ds_name = "dsb"
+    elif ds_name in ["TPCH-SF10"]:
+        ds_name = "tpch"
+    else:
+        ds_name = ds_name.lower()
+
+    catalog_path = f"{_catalog_path}/{ds_name}"
+    catalog = load_catalog(catalog_path=catalog_path)
+
+
+    payload = {
+        "name": "database",
+        "children": [
+            {
+                "name": "users",
+                "record_count": 120000,
+                "metadata": {
+                    "schema": "public",
+                    "owner": "auth_service",
+                    "size_mb": 480
+                },
+                "children": [
+                    { "name": "id", "value": 120000 },
+                    { "name": "email", "value": 120000 },
+                    { "name": "password_hash", "value": 120000 },
+                    { "name": "created_at", "value": 120000 }
+                ]
+            },
+            {
+                "name": "orders",
+                "record_count": 450000,
+                "metadata": {
+                    "schema": "sales",
+                    "owner": "order_service",
+                    "size_mb": 1024
+                },
+                "children": [
+                    { "name": "order_id", "value": 450000 },
+                    { "name": "user_id", "value": 450000 },
+                    { "name": "total_amount", "value": 450000 },
+                    { "name": "status", "value": 450000 },
+                    { "name": "created_at", "value": 450000 }
+                ]
+            },
+            {
+                "name": "products",
+                "record_count": 15000,
+                "metadata": {
+                    "schema": "catalog",
+                    "owner": "product_service",
+                    "size_mb": 120
+                },
+                "children": [
+                    { "name": "product_id", "value": 15000 },
+                    { "name": "name", "value": 15000 },
+                    { "name": "price", "value": 15000 },
+                    { "name": "category", "value": 15000 }
+                ]
+            }
+        ]
+    }
+
+    return Response(
+        json.dumps(payload, cls=PlotlyJSONEncoder),
+        mimetype="application/json"
+    )
+
+def load_query_params(template_path: str):
+    from pathlib import Path
+    import pandas as pd
+    import json
+    _query_params = dict()
+    file_path = Path(f"{template_path}/query_params.csv")
+    if file_path.exists():
+        df = pd.read_csv(file_path, low_memory=False, encoding='utf-8')
+        for index, row in df.iterrows():
+            params_dict = json.loads(row['params'])
+            _query_params[row['query_id']] = (row['template_id'], params_dict)
+
+    return _query_params
 # @catalog_bp.route('/get_catalog', methods=['POST'])
 # def get_catalog():
 #     from ..config import _catalog_path

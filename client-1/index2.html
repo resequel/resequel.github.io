@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReSequel Demo</title>
+
+    <!-- Chart.js v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Font Awesome 6 CDN (free version) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="scripts/APIs.js"></script>
+
+
+    <link rel="stylesheet" href="skins/style.css" media="all">
+    <link rel="stylesheet" href="skins/style-code.css" media="all">
+    <link rel="stylesheet" href="skins/style-schema.css" media="all">
+
+    <!--<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
+    <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js"
+            integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3ET25DPYQ7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-3ET25DPYQ7');
+    </script>
+
+</head>
+
+<body data-theme="light">
+
+<div id="loading-popup">
+    <div class="spinner"></div>
+    <span id="loading-text">Loading...</span></div>
+
+<header class="header">
+    <h1 style="font-size: 30px; color: black; font-weight: 600">ReSequel <span style="color: #e60000">Demo</span></h1>
+<!--    <div class="logo" id="dashboard-name">ReSequel Demo</div>-->
+    <!-- <div>
+      <select class="time-select" id="global-time">
+        <option value="5m">Last 5m</option>
+        <option value="1h" selected>Last 1h</option>
+        <option value="6h">Last 6h</option>
+        <option value="24h">Last 24h</option>
+      </select>
+    </div> -->
+</header>
+
+<div id="settings-float" onclick="toggleSettings()">
+    <i data-feather="settings"></i>
+</div>
+
+<div id="settings-panel">
+    <!-- <span class="close-settings" onclick="toggleSettings()">X</span> -->
+    <span class="close-settings" onclick="toggleSettings()">
+    <i data-feather="x" style="width:18px;height:18px;"></i>
+  </span>
+    <h3>Settings</h3>
+
+    <div class="setting"><label>LLM Model:</label>
+        <select id="set-llm">
+            <option disabled>Google</option>
+            <option value="gemini-2.5-pro">Gemini-2.5-pro</option>
+            <option value="gemini-flash-latest">Gemini-flash-latest</option>
+            <option disabled>OpenAI</option>
+            <option value="gpt-oss-20b">gpt-oss-20b</option>
+            <option value="gpt-oss-120b">gpt-oss-120b</option>
+        </select>
+    </div>
+
+    <div class="setting"><label>API Key:</label>
+        <textarea id="APIKey" placeholder="e.g. gemini API key" rows="3"
+                  style="resize:vertical; width: 100%"></textarea>
+    </div>
+
+    <div class="setting"><label>Workloads and Datasets:</label>
+        <select id="workload-dataset">
+            <option value="IMDB-Full">IMDB-Full (13k queries)</option>
+<!--            <option value="IMDB-JOB">IMDB-JOB (113 queries)</option>-->
+
+<!--            <option value="STATS">Stats (146 queries)</option>-->
+<!--            <option value="StackOverflow">StackOverflow (1190 queries)</option>-->
+            <option value="DSB-SF10">DSB (sf=10, 52 queries)</option>
+            <option value="DSB-SF10-S100">DSB (sf=10, Stream=100, 52 queries)</option>
+<!--            <option value="TPCH-SF10">TPC-H (sf=10, 22 queries)</option>-->
+        </select>
+    </div>
+
+    <div class="setting">
+        <label>Number of Versions:</label>
+        <div class="range-container">
+            <div class="range-label"><span>1</span></div>
+            <input type="range" id="set-refresh-range" min="1" max="30" step="1" value="10">
+            <div class="range-label"><span id="range-val">10</span></div>
+        </div>
+    </div>
+
+    <div class="setting">
+        <button class="theme-btn" onclick="toggleTheme()">
+            <i data-feather="sun"></i> <span id="theme-label">Light Mode</span>
+        </button>
+    </div>
+
+    <div class="setting">
+        <button class="theme-save" onclick="callGetCatalogAPI()">
+            <i data-feather="save"></i> <span id="save-setting">Save</span>
+        </button>
+    </div>
+</div>
+
+<main class="dashboard">
+<!--    <section style="background: white; height: 700px; width: 99%; border: black; border: 1px solid #eee;">-->
+<!--    <div>-->
+<!--        <label>Input Query:</label>-->
+<!--        <textarea id="orig_query" placeholder="SELECT * FROM table_1" rows="25"  style="resize:vertical; width: 100%"></textarea>-->
+<!--&lt;!&ndash;      <div style="background: black">&ndash;&gt;-->
+<!--&lt;!&ndash;           &ndash;&gt;-->
+<!--&lt;!&ndash;      </div>&ndash;&gt;-->
+<!--    </div>-->
+<!--</section>-->
+
+
+
+<section class="grid-rewrite" style="width: 99%; padding-top: 20px; ">
+    <!-- Column 1 -->
+
+    <div class="grid-rewrite-content">
+        <div class="group-header-title" style="cursor: default"><span><i class="fa-solid fa-code"></i> <span style="color: black">Input SQL Query:</span></span> <span><button class="theme-btn" onclick="callGetTemplateAPI()">Run Rewrite <i class="fa-solid fa-angles-right"></i></button></span></div>
+         <div class="sql-editor" id="orig_query" contenteditable="true" spellcheck="false">
+            SELECT *
+            FROM users
+            WHERE age > 18
+            -- type SQL here
+        </div>
+    </div>
+
+    <!-- Column 2 -->
+    <div class="grid-rewrite-content">
+        <div class="group-header-title" style="cursor: default;" ><span><i class="fa-regular fa-file-code"></i> <span style="color: black">Query Template and Parameters:</span></span></div>
+         <div class="sql-editor" id="query_template" contenteditable="true" spellcheck="false"></div>
+
+    </div>
+</section>
+
+    <section class="group-grid" style="width: 99%; padding-top: 20px; ">
+    <!-- Column 1 -->
+    <div class="group-column">
+        <div class="group-header" onclick="toggleGroup(this)" >
+            Dataset Overview
+            <svg class="icon-down" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <svg class="icon-up" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 style="display:none;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+
+        <div class="group-content">
+            <div id="fig_table_cardinality" class="plot-box"></div>
+            <div id="fig_tables_dtype" class="plot-box"></div>
+        </div>
+    </div>
+
+    <!-- Column 2 -->
+    <div class="group-column">
+        <div class="group-header" onclick="toggleGroup(this)" >
+            Workload Overview
+            <svg class="icon-down" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <svg class="icon-up" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 style="display:none;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+
+        <div class="group-content grid-246">
+            <div id="fig_template_ratio" class="plot-box"></div>
+             <div id="fig_template_cardinality" class="plot-box"></div>
+
+<!--            <div id="chart" style="position: relative; "  class="plot-box"></div>-->
+<!--            <div class="tooltip" id="tooltip"  class="plot-box"></div>-->
+        </div>
+    </div>
+</section>
+
+
+
+
+</main>
+
+<script>
+    // === ALL FUNCTIONS AT THE TOP (HOISTED) ===
+    feather.replace();
+
+    function showLoading(m = 'Loading...') {
+        document.getElementById('loading-text').textContent = m;
+        document.getElementById('loading-popup').classList.add('show');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-popup').classList.remove('show');
+    }
+
+    function setCookie(n, v, d = 365) {
+        const e = new Date();
+        e.setTime(e.getTime() + d * 24 * 60 * 60 * 1000);
+        document.cookie = `${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/`;
+    }
+
+    function getCookie(n) {
+        const m = document.cookie.match(new RegExp('(^| )' + n + '=([^;]+)'));
+        return m ? decodeURIComponent(m[2]) : null;
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('theme-label').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        const iconEl = document.querySelector('#settings-panel i[data-feather]');
+        if (iconEl) iconEl.setAttribute('data-feather', isDark ? 'moon' : 'sun');
+        feather.replace();
+    }
+
+    function toggleSettings() {
+        document.getElementById('settings-panel').classList.toggle('open');
+    }
+
+    function toggleGroup(el) {
+        const c = el.parentElement.querySelector('.group-content');
+        if (!c) return;
+        const isActive = c.classList.toggle('active');
+
+        // Change Feather icon
+       const iconDown = el.querySelector('.icon-down');
+       const iconUp = el.querySelector('.icon-up');
+       if (iconDown && iconUp) {
+            iconDown.style.display = isActive ? 'none' : 'inline-block';
+            iconUp.style.display = isActive ? 'inline-block' : 'none';
+        }
+
+        // 🔥 IMPORTANT for Plotly
+        if (isActive) {
+            setTimeout(() => {
+                c.querySelectorAll('.plot-box').forEach(div => {
+                    Plotly.Plots.resize(div);
+                });
+            }, 100);
+        }
+    }
+
+    // Slider
+    const range = document.getElementById('set-refresh-range');
+    const rangeVal = document.getElementById('range-val');
+
+    function updateSlider() {
+        const val = range.value;
+        rangeVal.textContent = val + ' Version(s)';
+        const p = ((val - 1) / 29) * 100;
+        range.style.setProperty('--progress', p + '%');
+    }
+
+    range.addEventListener('input', updateSlider);
+    updateSlider();
+
+    // Settings
+    const s = {
+        name: document.getElementById('set-name'), range: range, rangeVal: rangeVal,
+        time: document.getElementById('set-time-range'), auto: document.getElementById('auto-refresh')
+    };
+
+    async function loadSettings() {
+        showLoading('Loading settings...');
+        await new Promise(r => setTimeout(r, 300));
+        const v = {
+            name: getCookie('dashName') || 'Datadog Demo',
+            refresh: parseInt(getCookie('dashRefresh')) || 10,
+            time: getCookie('dashTime') || '1h',
+            auto: getCookie('dashAuto') !== 'false',
+            notes: getCookie('dashNotes') || ''
+        };
+        document.getElementById('dashboard-name').textContent = v.name;
+        s.name.value = v.name;
+        s.range.value = v.refresh;
+        updateSlider();
+        s.time.value = v.time;
+        document.getElementById('global-time').value = v.time;
+        s.auto.checked = v.auto;
+        document.getElementById('notes-textarea').value = v.notes;
+        startRefresh(v.auto ? v.refresh * 1000 : 0);
+        hideLoading();
+    }
+
+    async function saveSettings() {
+        showLoading('Saving...');
+        await new Promise(r => setTimeout(r, 200));
+        setCookie('dashName', s.name.value);
+        setCookie('dashRefresh', s.range.value);
+        setCookie('dashTime', s.time.value);
+        setCookie('dashAuto', s.auto.checked);
+        setCookie('dashNotes', document.getElementById('notes-textarea').value);
+        document.getElementById('dashboard-name').textContent = s.name.value;
+        document.getElementById('global-time').value = s.time.value;
+        startRefresh(s.auto.checked ? s.range.value * 1000 : 0);
+        hideLoading();
+    }
+
+    s.name.addEventListener('change', saveSettings);
+    s.range.addEventListener('change', saveSettings);
+    s.time.addEventListener('change', saveSettings);
+    s.auto.addEventListener('change', saveSettings);
+    document.getElementById('global-time').addEventListener('change', e => {
+        s.time.value = e.target.value;
+        saveSettings();
+    });
+    document.getElementById('notes-textarea').addEventListener('input', () => {
+        clearTimeout(window.notesTimer);
+        window.notesTimer = setTimeout(saveSettings, 800);
+    });
+
+    let refreshInterval = null;
+
+    function startRefresh(ms) {
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (ms > 0) {
+            showLoading(`Refresh every ${ms / 1000}s...`);
+            setTimeout(() => {
+                refreshInterval = setInterval(updateAll, ms);
+                hideLoading();
+            }, 300);
+        }
+    }
+
+    function buildWidgetToggles() {
+        const c = document.getElementById('widget-toggles');
+        document.querySelectorAll('.widget').forEach((w, i) => {
+            const id = `w${i}`;
+            w.dataset.id = id;
+            const t = w.querySelector('.title')?.textContent || `Widget ${i + 1}`;
+            c.innerHTML += `<label><input type="checkbox" data-id="${id}" checked> ${t}</label><br>`;
+        });
+    }
+
+    buildWidgetToggles();
+    document.addEventListener('change', e => {
+        if (e.target.matches('input[data-id]')) {
+            const w = document.querySelector(`.widget[data-id="${e.target.dataset.id}"]`);
+            w.style.display = e.target.checked ? '' : 'none';
+        }
+    });
+
+    // === MOCK DATA ===
+    const rand = (a, b) => Math.random() * (b - a) + a;
+    const randInt = (a, b) => Math.floor(rand(a, b));
+    const hosts = Array.from({length: 12}, (_, i) => `host-${i + 1}`);
+    let cpu = [], mem = [], disk = [], netIn = [], netOut = [], err = [];
+
+    function initData() {
+        const now = Date.now();
+        for (let i = 30; i >= 0; i--) {
+            const t = now - i * 10000;
+            cpu.push({x: t, y: rand(20, 80)});
+            mem.push({used: rand(35, 75), cached: rand(10, 30), free: rand(5, 20)});
+            disk.push({read: rand(5, 55), write: rand(5, 45)});
+            netIn.push({x: t, y: rand(40, 320)});
+            netOut.push({x: t, y: rand(30, 280)});
+            err.push({x: t, y: rand(0, 1.8)});
+        }
+    }
+
+    initData();
+
+    // === GAUGE (native doughnut) ===
+    function createGauge(ctx, value, max = 10) {
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [value, max - value],
+                    backgroundColor: ['#00AEEF', '#444'],
+                    borderWidth: 0,
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {tooltip: {enabled: false}, legend: {display: false}}
+            },
+            plugins: [{
+                id: 'gaugeText',
+                afterDatasetsDraw(chart) {
+                    const {ctx, chartArea: {width, height}} = chart;
+                    ctx.save();
+                    ctx.font = 'bold 1.2rem sans-serif';
+                    ctx.fillStyle = '#00AEEF';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(value.toFixed(2), width / 2, height - 10);
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+
+    // === UPDATE ALL (NOW DEFINED BEFORE USE) ===
+    function updateAll() {
+        const now = Date.now();
+        const cv = rand(20, 85);
+        cpu.push({x: now, y: cv});
+        if (cpu.length > 60) cpu.shift();
+        Chart.getChart('cpuLine').data.datasets[0].data = cpu;
+        Chart.getChart('cpuLine').update('none');
+        const m = {used: rand(35, 75), cached: rand(10, 30), free: rand(5, 20)};
+        mem.push({x: now, ...m});
+        if (mem.length > 60) mem.shift();
+        const memArea = Chart.getChart('memArea');
+        memArea.data.datasets.forEach((ds, i) => ds.data = mem.map(d => ({
+            x: d.x,
+            y: d[['used', 'cached', 'free'][i]]
+        })));
+        memArea.update('none');
+        const dr = rand(5, 55), dw = rand(5, 45);
+        disk.push({read: dr, write: dw});
+        if (disk.length > 6) disk.shift();
+        const diskBar = Chart.getChart('diskBar');
+        diskBar.data.labels = disk.map((_, i) => `-${i * 10}s`);
+        diskBar.data.datasets[0].data = disk.map(d => d.read);
+        diskBar.data.datasets[1].data = disk.map(d => d.write);
+        diskBar.update('none');
+        const gauge = Chart.getChart('loadGauge');
+        const val = rand(0, 9.5);
+        gauge.data.datasets[0].data = [val, 10 - val];
+        gauge.update('none');
+        document.getElementById('kpi-hosts').textContent = randInt(35, 48);
+        document.getElementById('host-trend').textContent = `${rand(-5, 12).toFixed(1)}%`;
+        const ev = rand(0, 1.8);
+        err.push({x: now, y: ev});
+        if (err.length > 60) err.shift();
+        Chart.getChart('errorLine').data.datasets[0].data = err;
+        Chart.getChart('errorLine').update('none');
+        const ni = rand(40, 320), no = rand(30, 280);
+        netIn.push({x: now, y: ni});
+        netOut.push({x: now, y: no});
+        if (netIn.length > 60) {
+            netIn.shift();
+            netOut.shift();
+        }
+        const netLine = Chart.getChart('netLine');
+        netLine.data.datasets[0].data = netIn;
+        netLine.data.datasets[1].data = netOut;
+        netLine.update('none');
+    }
+
+    // === DOM READY ===
+    document.addEventListener('DOMContentLoaded', async () => {
+        showLoading('Initializing...');
+        await new Promise(r => setTimeout(r, 400));
+        await loadSettings();
+
+        // === ICONS & THEME ===
+        feather.replace();  // Must be BEFORE accessing <i> elements
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        const iconEl = document.querySelector('#settings-panel i[data-feather]');
+        if (iconEl) iconEl.setAttribute('data-feather', isDark ? 'sun' : 'moon');
+        feather.replace();
+
+        // === CHARTS ===
+        const opt = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {display: false}},
+            animation: {duration: 0}
+        };
+        new Chart('cpuLine', {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'CPU %',
+                    borderColor: '#00AEEF',
+                    backgroundColor: '#00AEEF20',
+                    fill: false,
+                    tension: .2,
+                    data: cpu
+                }]
+            },
+            options: {...opt, scales: {x: {type: 'time', time: {unit: 'minute'}}, y: {beginAtZero: true, max: 100}}}
+        });
+        new Chart('memArea', {
+            type: 'line', data: {
+                datasets: [
+                    {label: 'Used', backgroundColor: '#00AEEF80', data: mem.map(d => ({x: d.x, y: d.used}))},
+                    {label: 'Cached', backgroundColor: '#ffeb3b80', data: mem.map(d => ({x: d.x, y: d.cached}))},
+                    {label: 'Free', backgroundColor: '#4caf5080', data: mem.map(d => ({x: d.x, y: d.free}))}
+                ]
+            }, options: {...opt, scales: {x: {type: 'time', time: {unit: 'minute'}}, y: {stacked: true}}}
+        });
+        new Chart('diskBar', {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{label: 'Read', backgroundColor: '#00AEEF', data: []}, {
+                    label: 'Write',
+                    backgroundColor: '#ff5722',
+                    data: []
+                }]
+            },
+            options: {...opt, scales: {y: {beginAtZero: true}}}
+        });
+        createGauge(document.getElementById('loadGauge'), 0);
+        new Chart('errorLine', {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Error %',
+                    borderColor: '#ff5722',
+                    backgroundColor: '#ff572220',
+                    fill: false,
+                    tension: .2,
+                    data: err
+                }]
+            },
+            options: {...opt, scales: {x: {type: 'time', time: {unit: 'minute'}}, y: {beginAtZero: true, max: 5}}}
+        });
+        new Chart('netLine', {
+            type: 'line', data: {
+                datasets: [
+                    {label: 'In', borderColor: '#4caf50', backgroundColor: '#4caf5020', fill: true, data: netIn},
+                    {label: 'Out', borderColor: '#f44336', backgroundColor: '#f4433620', fill: true, data: netOut}
+                ]
+            }, options: {...opt, scales: {x: {type: 'time', time: {unit: 'minute'}}}}
+        });
+        new Chart('reqPie', {
+            type: 'doughnut',
+            data: {
+                labels: ['GET', 'POST', 'PUT', 'DELETE'],
+                datasets: [{data: [60, 25, 10, 5], backgroundColor: ['#00AEEF', '#ffeb3b', '#ff5722', '#4caf50']}]
+            },
+            options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+        });
+        new Chart('latencyDist', {
+            type: 'bar',
+            data: {
+                labels: ['0-50', '50-100', '100-200', '200-500', '500+'],
+                datasets: [{label: 'Requests', backgroundColor: '#00AEEF', data: [120, 85, 45, 20, 5]}]
+            },
+            options: {...opt, scales: {y: {beginAtZero: true}}}
+        });
+
+        // === OTHER WIDGETS ===
+        function renderHeatmap() {
+            const tb = document.querySelector('#cpuHeatmap tbody');
+            tb.innerHTML = '';
+            for (let r = 0; r < 4; r++) {
+                const tr = document.createElement('tr');
+                for (let c = 0; c < hosts.length; c++) {
+                    const v = randInt(10, 95);
+                    const td = document.createElement('td');
+                    td.className = v < 40 ? 'low' : v < 70 ? 'mid' : 'high';
+                    td.innerHTML = `<span class="val">${v}</span>`;
+                    tr.appendChild(td);
+                }
+                tb.appendChild(tr);
+            }
+        }
+
+        renderHeatmap();
+
+        function renderTopEndpoints() {
+            const eps = ['/api/users', '/api/orders', '/health', '/api/search', '/login'];
+            const tb = document.querySelector('#topEndpoints tbody');
+            tb.innerHTML = '';
+            eps.sort(() => Math.random() - .5).slice(0, 5).forEach(ep => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${ep}</td><td>${randInt(50, 300)}</td><td>${randInt(100, 5000)}</td>`;
+                tb.appendChild(tr);
+            });
+        }
+
+        renderTopEndpoints();
+
+        function renderTopology() {
+            const svg = document.querySelector('#topology svg');
+            svg.innerHTML = '';
+            const sv = ['frontend', 'api-gateway', 'auth', 'orders', 'inventory', 'db'];
+            const cx = 200, cy = 90, r = 70;
+            sv.forEach((n, i) => {
+                const a = i * Math.PI * 2 / sv.length;
+                const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+                svg.innerHTML += `<circle cx="${x}" cy="${y}" r="18" fill="#00AEEF" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y + 5}" fill="#fff" font-size="12" text-anchor="middle">${n.slice(0, 3)}</text>`;
+            });
+            for (let i = 0; i < 8; i++) {
+                const a = randInt(0, sv.length), b = randInt(0, sv.length);
+                if (a === b) continue;
+                const ax = cx + r * Math.cos(a * Math.PI * 2 / sv.length),
+                    ay = cy + r * Math.sin(a * Math.PI * 2 / sv.length);
+                const bx = cx + r * Math.cos(b * Math.PI * 2 / sv.length),
+                    by = cy + r * Math.sin(b * Math.PI * 2 / sv.length);
+                svg.innerHTML += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#666" stroke-width="1.5"/>`;
+            }
+        }
+
+        renderTopology();
+
+        function addEvent() {
+            const tb = document.querySelector('#eventList tbody');
+            const sev = ['Info', 'Warning', 'Alert'][randInt(0, 3)];
+            const col = sev === 'Info' ? '#4caf50' : sev === 'Warning' ? '#ffeb3b' : '#f44336';
+            const m = randInt(0, 59);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${m}m ago</td><td>${hosts[randInt(0, hosts.length)]}</td><td>Event #${randInt(1000, 9999)}</td><td style="color:${col}">${sev}</td>`;
+            tb.insertBefore(tr, tb.firstChild);
+            if (tb.children.length > 15) tb.removeChild(tb.lastChild);
+        }
+
+        for (let i = 0; i < 8; i++) addEvent();
+
+        document.querySelectorAll('.group-header').forEach(h => h.click());
+        hideLoading();
+    });
+</script>
+<script src="scripts/script.js"></script>
+<script>
+    const orig_query = document.getElementById("orig_query");
+    highlightSQL(orig_query);
+    orig_query.addEventListener("input", highlightSQL);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+<script>
+    feather.replace(); // initial render
+</script>
+</body>
+</html>

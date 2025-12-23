@@ -1,95 +1,4 @@
 /* Inter Font */
-            @font-face {
-                font-family: 'Inter';
-                font-style: normal;
-                font-weight: 300;
-                font-display: swap;
-                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-300.woff2') format('woff2');
-            }
-
-            @font-face {
-                font-family: 'Inter';
-                font-style: normal;
-                font-weight: 400;
-                font-display: swap;
-                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-regular.woff2') format('woff2');
-            }
-
-            @font-face {
-                font-family: 'Inter';
-                font-style: normal;
-                font-weight: 500;
-                font-display: swap;
-                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-500.woff2') format('woff2');
-            }
-
-            @font-face {
-                font-family: 'Inter';
-                font-style: normal;
-                font-weight: 600;
-                font-display: swap;
-                src: url('https://cdn.dqlabs.ai/wp-content/themes/corpus/fonts/inter-v19-latin-600.woff2') format('woff2');
-            }
-
-
-:root {
-    --bg: #1e1e1e;
-    --card-bg: #2d2d2d;
-    --text: #fff;
-    --accent: #00AEEF;
-    border: #404040;
-    --grid-cols: 12;
-}
-
-[data-theme="light"] {
-    --bg: #f7f7f7;
-    --card-bg: #fff;
-    --text: #333;
-    --border: #e0e0e0;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    position: relative;
-    overflow: hidden;
-}
-
-.header {
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    padding: .75rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: .5rem;
-    position: relative;
-    z-index: 1500;
-}
-
-.logo {
-    font-weight: bold;
-    font-size: 1.4rem;
-    color: var(--accent);
-}
-
-.time-select {
-    padding: .4rem;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-}
 
 #settings-float {
     position: fixed;
@@ -213,6 +122,21 @@ body {
     border-bottom: 1px solid #eee;
 }
 
+.group-header-title {
+    border: none;
+    color: #e60000;
+    padding: 0.75rem 1rem;
+    /*background: #fcd5d575;*/
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 18px;
+    min-height: 75px;
+    /*border-bottom: 1px solid #eee;*/
+}
 /* Smooth icon animation (optional) */
 .group-header svg {
     transition: transform 0.2s ease;
@@ -245,6 +169,20 @@ body {
     grid-template-columns: 2fr 3fr;
     gap: 20px;
     align-items: start;
+}
+
+.grid-rewrite {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    min-height: 650px;
+}
+.grid-rewrite-content{
+    background: none;
+    /*border: 1px solid var(--border);*/
+    /*border-radius: 8px;*/
+    overflow: hidden;
 }
 
 .group-content.grid-246.active {
@@ -540,6 +478,22 @@ canvas {
     border-radius: 6px;
     cursor: pointer;
     font-size: .9rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.theme-btn {
+    background: #e60000;
+    border: 1px solid var(--border);
+    color: white;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .9rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: .5rem;
