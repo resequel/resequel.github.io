@@ -1,6 +1,8 @@
 
-_catalog_path: str = "/home/saeed/Documents/Github/ReSQL/Experiments/catalog/"
-_workload_path: str = "/home/saeed/Documents/Github/ReSQL/Experiments/workload/"
+_catalog_path: str = "/home/saeed/Documents/resequel_data/catalog/"
+_workload_path: str = "/home/saeed/Documents/resequel_data/workload/"
+_template_path:str =  "/home/saeed/Documents/resequel_data/workload/"
+_rewrite_path:str = "/home/saeed/Documents/resequel_data/LLM-rewrite/"
 
 # import os
 

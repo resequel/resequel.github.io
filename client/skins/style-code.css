@@ -77,8 +77,10 @@
 
 /* ---------- TREE CONTAINER ---------- */
 #query_ast {
-  height: 420px;
+  height: 100%;
   width: 100%;
+  /*width: 100vw;*/
+  /*    height: 100vh;*/
   overflow: hidden;
   background: #ffffff;
 }
@@ -126,5 +128,13 @@ svg {
 
 svg:active {
   cursor: grabbing;
+}
+
+
+.markdown-scroll {
+    max-height: 600px;       /* vertical scroll */
+    overflow-y: auto;
+    overflow-x: auto;        /* horizontal scroll */
+    white-space: normal;
 }
 

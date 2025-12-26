@@ -21844,7 +21844,7 @@ body .main-header .navbar .nav > li.search-box > a:hover, body .main-header .nav
 
 @media (min-width: 768px) {
   .sidebar-mini.sidebar-expanded-on-hover .content-wrapper {
-    margin-left: 80px; }
+    margin-left: 10px; }
   .sidebar-mini.sidebar-expanded-on-hover .main-header .navbar {
     margin-left: 19.29rem; }
   .sidebar-mini.sidebar-expanded-on-hover .main-header .logo-box {
@@ -21856,7 +21856,7 @@ body .main-header .navbar .nav > li.search-box > a:hover, body .main-header .nav
     z-index: 9;
     background: #ffffff; }
   .sidebar-mini.sidebar-collapse .content-wrapper {
-    margin-left: 60px;
+    margin-left: 10px;
     z-index: 840; }
   .sidebar-mini.sidebar-collapse .main-footer {
     margin-left: 60px;

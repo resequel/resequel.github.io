@@ -29,6 +29,9 @@
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-noconflict/ext-language_tools.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
+     <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js"
+            integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3ET25DPYQ7"></script>
     <script>
@@ -74,16 +77,12 @@
                             <i data-feather="maximize"></i>
                         </a>
                     </li>
-                    <!-- User Account-->
-                    <li class="dropdown user user-menu">
-                        <a href="index.html#"
-                           class="waves-effect waves-light dropdown-toggle w-auto l-h-12 bg-transparent p-0 no-shadow"
-                           title="User" data-bs-toggle="modal" data-bs-target="#quick_user_toggle">
-                            <img src="images/avatar/avatar-13.png"
-                                 class="avatar rounded-circle bg-primary-light h-40 w-40" alt=""/>
+                    <li class="btn-group nav-item d-xl-inline-flex d-none">
+                        <a href="index.html#"  data-bs-toggle="modal" data-bs-target="#quick_user_toggle"
+                           class="waves-effect waves-light nav-link btn-primary-light svg-bt-icon" title="Full Screen">
+                             <i class="si-settings si"></i>
                         </a>
                     </li>
-
                 </ul>
             </div>
         </nav>
@@ -95,6 +94,62 @@
         <div class="container-full">
             <!-- Main content -->
             <section class="content">
+                <div class="row">
+				<div class="col-12 order-xl-1 order-2">
+					<div class="row">
+						<div class="col-lg-3 col-12">
+							<div class="box overflow-h">
+								<div class="box-body" style="height:30rem;">
+									<div class="d-flex justify-content-between align-items-center">
+										<h4 class="me-10 mb-0 fw-600">Dataset Overview</h4>
+									</div>
+									<div>
+										<div id="fig_table_cardinality" class="plot-box"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-12">
+							<div class="box overflow-h">
+								<div class="box-body" style="height:30rem;">
+									<div class="d-flex justify-content-between align-items-center">
+										<h4 class="me-10 mb-0 fw-600">Dataset Tables Overview</h4>
+									</div>
+									<div>
+										<div id="fig_tables_dtype" class="plot-box"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-2 col-12">
+							<div class="box overflow-h">
+								<div class="box-body" style="height:30rem;">
+									<div class="d-flex justify-content-between align-items-center">
+										<h4 class="me-10 mb-0 fw-600">Workload Size</h4>
+									</div>
+									<div>
+                                        <div id="fig_template_ratio" class="plot-box"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+                        <div class="col-lg-4 col-12">
+							<div class="box overflow-h">
+								<div class="box-body" style="height:30rem;">
+									<div class="d-flex justify-content-between align-items-center">
+										<h4 class="me-10 mb-0 fw-600">Workload Template Cardinality</h4>
+									</div>
+									<div>
+                                        <div id="fig_template_cardinality" class="plot-box"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
                 <div class="row">
                     <div class="col-xl-4 col-12">
                         <div class="box">
@@ -147,18 +202,47 @@ WHERE age > 18
                                 </tbody>
 							</table>
 							  </div>
-				</div>
+				        </div>
                         </div>
 
                     </div>
-                    <div class="col-xl-12 col-12">
+                    <div class="col-xl-4 col-12">
  						<div class="box" style="margin-bottom: .5rem">
                             <div class="box-header d-flex justify-content-between">
-                                <h4 class="box-title">Analysis Query</h4>
+                                <h4 class="box-title">New Query</h4>
                                 <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>
                             </div>
                             <div class="box-body ps-0 pb-0" style="padding: 0px">
-                                <div id="query_ast" style="width: 100%; height: 2000px; overflow: auto;"></div>
+                                <div class="sql-editor" style="height: 680px" id="new_query" contenteditable="false" spellcheck="false"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    <div class="row">
+                        <div class="col-xl-5 col-12">
+                            <div class="box" style="margin-bottom: .5rem">
+                                <div class="box-header d-flex justify-content-between">
+                                    <h4 class="box-title">Verified Queries Performance</h4>
+                                    <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>
+                                </div>
+                                <div class="box-body ps-0 pb-0" style="padding: 0px">
+                                    <div id="fig_verified_queries_exe" class="plot-box" style="height: 450px"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="col-xl-4 col-12">
+ 						<div class="box" id="query_tree_ast" style="margin-bottom: .5rem">
+                            <div class="box-header d-flex justify-content-between">
+                                <h4 class="box-title">Analysis Query</h4>
+                                <h6 class="box-title text-primary">
+                                    <ul class="box-controls pull-right">
+                                      <li><a class="box-btn-fullscreen" href="#" onclick="reRenderTree()"></a></li>
+                                    </ul>
+                                </h6>
+                            </div>
+                            <div class="box-body ps-0 pb-0" style="padding: 0px">
+                                <div id="query_ast" style="width: 100%; height: 600px; overflow: auto;"></div>
                             </div>
                         </div>
                         <div class="box-body" style="padding: 0px">
@@ -179,6 +263,40 @@ WHERE age > 18
                     </div>
 
                 </div>
+                <!------------------------------------------------------------------->
+
+                <!------------------------------------------------------------------->
+<!--                <div class="row">-->
+<!--                    <div class="col-xl-6 col-12">-->
+<!-- 						<div class="box" style="margin-bottom: .5rem">-->
+<!--                            <div class="box-header d-flex justify-content-between">-->
+<!--                                <h4 class="box-title">System Prompt</h4>-->
+<!--                                <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>-->
+<!--                            </div>-->
+<!--                            <div class="box-body ps-0 pb-0" style="padding: 0px">-->
+<!--                                <div id="markdown-preview" class="markdown-body markdown-scroll" >-->
+
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                    </div>-->
+<!--                    <div class="col-xl-6 col-12">-->
+<!-- 						<div class="box" style="margin-bottom: .5rem">-->
+<!--                            <div class="box-header d-flex justify-content-between">-->
+<!--                                <h4 class="box-title">System Prompt</h4>-->
+<!--                                <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>-->
+<!--                            </div>-->
+<!--                            <div class="box-body ps-0 pb-0" style="padding: 0px">-->
+<!--                                <div id="markdown-preview2" class="markdown-body markdown-scroll" >-->
+
+<!--                                </div>-->
+
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                    </div>-->
+<!--                </div>-->
             </section>
             <!-- /.content -->
         </div>
@@ -189,13 +307,10 @@ WHERE age > 18
         <div class="pull-right d-none d-sm-inline-block">
             <ul class="nav nav-primary nav-dotted nav-dot-separated justify-content-center justify-content-md-end">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.html#" target="_blank">Purchase Now</a>
+                    Saeed Fathollahzadeh
                 </li>
             </ul>
         </div>
-        &copy;
-        <script>document.write(new Date().getFullYear())</script>
-        <a href="https://www.multipurposethemes.com/">Multipurpose Themes</a>. All Rights Reserved.
     </footer>
     <!-- Side panel -->
     <!-- quick_user_toggle -->
@@ -204,151 +319,56 @@ WHERE age > 18
             <div class="modal-content slim-scroll3">
                 <div class="modal-body p-30 bg-white">
                     <div class="d-flex align-items-center justify-content-between pb-30">
-                        <h4 class="m-0">User Profile
-                            <small class="text-fade fs-12 ms-5">12 messages</small></h4>
+                        <h4 class="m-0 fs-20">Setting</h4>
                         <a href="index.html#" class="btn btn-icon btn-danger-light btn-sm no-shadow"
                            data-bs-dismiss="modal">
                             <span class="fa fa-close"></span>
                         </a>
                     </div>
                     <div>
-                        <div class="d-flex flex-row">
-                            <div class=""><img src="images/avatar/avatar-13.png" alt="user"
-                                               class="rounded bg-danger-light w-150" width="100"></div>
-                            <div class="ps-20">
-                                <h5 class="mb-0">Nil Yeager</h5>
-                                <p class="my-5 text-fade">Manager</p>
-                                <a href="mailto:dummy@gmail.com"><span class="icon-Mail-notification me-5 text-success"><span
-                                        class="path1"></span><span class="path2"></span></span> dummy@gmail.com</a>
-                                <button class="btn btn-success-light btn-sm mt-5"><i class="ti-plus"></i> Follow
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dropdown-divider my-30"></div>
-                    <div>
-                        <div class="d-flex align-items-center mb-30">
-                            <div class="me-15 bg-primary-light h-50 w-50 l-h-60 rounded text-center">
-                                <span class="icon-Library fs-24"><span class="path1"></span><span class="path2"></span></span>
-                            </div>
-                            <div class="d-flex flex-column fw-500">
-                                <a href="extra_profile.html" class="text-dark hover-primary mb-1 fs-16">My Profile</a>
-                                <span class="text-fade">Account settings and more</span>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-30">
-                            <div class="me-15 bg-danger-light h-50 w-50 l-h-60 rounded text-center">
-                                <span class="icon-Write fs-24"><span class="path1"></span><span
-                                        class="path2"></span></span>
-                            </div>
-                            <div class="d-flex flex-column fw-500">
-                                <a href="mailbox.html" class="text-dark hover-danger mb-1 fs-16">My Messages</a>
-                                <span class="text-fade">Inbox and tasks</span>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-30">
-                            <div class="me-15 bg-success-light h-50 w-50 l-h-60 rounded text-center">
-                                <span class="icon-Group-chat fs-24"><span class="path1"></span><span
-                                        class="path2"></span></span>
-                            </div>
-                            <div class="d-flex flex-column fw-500">
-                                <a href="setting.html" class="text-dark hover-success mb-1 fs-16">Settings</a>
-                                <span class="text-fade">Accout Settings</span>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-30">
-                            <div class="me-15 bg-info-light h-50 w-50 l-h-60 rounded text-center">
-                                <span class="icon-Attachment1 fs-24"><span class="path1"></span><span
-                                        class="path2"></span><span class="path3"></span><span
-                                        class="path4"></span></span>
-                            </div>
-                            <div class="d-flex flex-column fw-500">
-                                <a href="extra_taskboard.html" class="text-dark hover-info mb-1 fs-16">Project</a>
-                                <span class="text-fade">latest tasks and projects</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dropdown-divider my-30"></div>
-                    <div>
-                        <div class="media-list">
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">10:10</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-primary">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Johne</span>
-                                </div>
-                            </a>
+                        <div class="d-flex flex-row fs-16" >
+                            <div class="form-group" style="width: 100%">
+                                <label for="llm">LLM Model:</label>
+                                <select id="llm" name="llm" class="form-select fs-16 mb-30" style="margin-left: 0">
+                                    <option disabled>Google</option>
+                                    <option value="gemini-2.5-pro">Gemini-2.5-pro</option>
+                                    <option value="gemini-flash-latest">Gemini-flash-latest</option>
+                                    <option disabled>OpenAI</option>
+                                    <option value="gpt-oss-20b">gpt-oss-20b</option>
+                                    <option value="gpt-oss-120b">gpt-oss-120b</option>
+                                </select>
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">08:40</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-success">
-                                    <p>Proin iaculis eros non odio ornare efficitur.</p>
-                                    <span class="text-fade">by Amla</span>
-                                </div>
-                            </a>
+                                 <label for="APIKey">API Key:</label>
+                                <textarea id="APIKey"   name="APIKey" class="form-control fs-16 mb-30" style="margin-left: 0" rows="3"  placeholder="e.g. gemini API key ..."></textarea>
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">07:10</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-info">
-                                    <p>In mattis mi ut posuere consectetur.</p>
-                                    <span class="text-fade">by Josef</span>
-                                </div>
-                            </a>
+                                <label for="dbms">DBMS:</label>
+                                <select id="dbms"  class="form-select fs-16 mb-30" style="margin-left: 0">
+                                    <option value="PostgreSQL">PostgreSQL</option>
+                                    <option value="MySQL">MySQL</option>
+                                    <option value="DuckDB">DuckDB</option>
+                                </select>
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">01:15</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-danger">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Rima</span>
-                                </div>
-                            </a>
+                                <label for="workload-dataset">Workloads and Datasets:</label>
+                                <select id="workload-dataset"  class="form-select fs-16 mb-30" style="margin-left: 0">
+<!--                                    <option value="IMDB-Full">IMDB-Full (13k queries)</option>-->
+                        <!--            <option value="IMDB-JOB">IMDB-JOB (113 queries)</option>-->
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">23:12</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-warning">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Alaxa</span>
-                                </div>
-                            </a>
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">10:10</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-primary">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Johne</span>
-                                </div>
-                            </a>
+                        <!--            <option value="STATS">Stats (146 queries)</option>-->
+                        <!--            <option value="StackOverflow">StackOverflow (1190 queries)</option>-->
+                                    <option value="DSB-SF10">DSB (sf=10, 52 queries)</option>
+                                    <option value="DSB-SF10-S100">DSB (sf=10, Stream=100, 52 queries)</option>
+                        <!--            <option value="TPCH-SF10">TPC-H (sf=10, 22 queries)</option>-->
+                                </select>
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">08:40</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-success">
-                                    <p>Proin iaculis eros non odio ornare efficitur.</p>
-                                    <span class="text-fade">by Amla</span>
+                                <div class="d-flex align-items-center gap-2 fs-16 mb-30">
+                                    <label for="number-of-versions">Number of Versions:</label>
+                                   <input type="number" id="number-of-versions" class="form-control fs-16" min="1" max="30" value="10"  step="1" style="width: 100px;">
                                 </div>
-                            </a>
 
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">07:10</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-info">
-                                    <p>In mattis mi ut posuere consectetur.</p>
-                                    <span class="text-fade">by Josef</span>
+                                <div class="d-flex align-items-center gap-2 fs-16 mb-30">
+                                    <button type="button" class="waves-effect waves-light btn btn-info mb-5" onclick="callGetCatalogAPI()"><i class="fas fa-save fa-lg me-1"></i> Save</button>
                                 </div>
-                            </a>
-
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">01:15</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-danger">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Rima</span>
-                                </div>
-                            </a>
-
-                            <a class="media media-single px-0" href="index.html#">
-                                <h4 class="w-50 text-gray fw-500">23:12</h4>
-                                <div class="media-body ps-15 bs-5 rounded border-warning">
-                                    <p>Morbi quis ex eu arcu auctor sagittis.</p>
-                                    <span class="text-fade">by Alaxa</span>
-                                </div>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -628,125 +648,6 @@ WHERE age > 18
     <div class="control-sidebar-bg"></div>
 
 </div>
-<!-- ./wrapper -->
-
-
-<div id="chat-box-body">
-    <div id="chat-circle" class="waves-effect waves-circle btn btn-circle btn-sm btn-warning l-h-50">
-        <div id="chat-overlay"></div>
-        <span class="icon-Group-chat fs-18"><span class="path1"></span><span class="path2"></span></span>
-    </div>
-
-    <div class="chat-box">
-        <div class="chat-box-header p-15 d-flex justify-content-between align-items-center">
-            <div class="btn-group">
-                <button class="waves-effect waves-circle btn btn-circle btn-primary-light h-40 w-40 rounded-circle l-h-50"
-                        type="button" data-bs-toggle="dropdown">
-                    <span class="icon-Add-user fs-22"><span class="path1"></span><span class="path2"></span></span>
-                </button>
-                <div class="dropdown-menu min-w-200">
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Color me-15"></span>
-                        New Group</a>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Clipboard me-15"><span class="path1"></span><span class="path2"></span><span
-                                class="path3"></span><span class="path4"></span></span>
-                        Contacts</a>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Group me-15"><span class="path1"></span><span class="path2"></span></span>
-                        Groups</a>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Active-call me-15"><span class="path1"></span><span
-                                class="path2"></span></span>
-                        Calls</a>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Settings1 me-15"><span class="path1"></span><span class="path2"></span></span>
-                        Settings</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Question-circle me-15"><span class="path1"></span><span class="path2"></span></span>
-                        Help</a>
-                    <a class="dropdown-item fs-16" href="index.html#">
-                        <span class="icon-Notifications me-15"><span class="path1"></span><span
-                                class="path2"></span></span>
-                        Privacy</a>
-                </div>
-            </div>
-            <div class="text-center flex-grow-1">
-                <div class="text-dark fs-18">Mayra Sibley</div>
-                <div>
-                    <span class="badge badge-sm badge-dot badge-primary"></span>
-                    <span class="text-muted fs-12">Active</span>
-                </div>
-            </div>
-            <div class="chat-box-toggle">
-                <button id="chat-box-toggle"
-                        class="waves-effect waves-circle btn btn-circle btn-danger-light h-40 w-40 rounded-circle l-h-50"
-                        type="button">
-                    <span class="icon-Close fs-22"><span class="path1"></span><span class="path2"></span></span>
-                </button>
-            </div>
-        </div>
-        <div class="chat-box-body">
-            <div class="chat-box-overlay">
-            </div>
-            <div class="chat-logs">
-                <div class="chat-msg user">
-                    <div class="d-flex align-items-center">
-                            <span class="msg-avatar">
-                                <img src="images/avatar/2.jpg" class="avatar avatar-lg" alt="">
-                            </span>
-                        <div class="mx-10">
-                            <a href="index.html#" class="text-dark hover-primary fw-bold">Mayra Sibley</a>
-                            <p class="text-muted fs-12 mb-0">2 Hours</p>
-                        </div>
-                    </div>
-                    <div class="cm-msg-text">
-                        Hi there, I'm Jesse and you?
-                    </div>
-                </div>
-                <div class="chat-msg self">
-                    <div class="d-flex align-items-center justify-content-end">
-                        <div class="mx-10">
-                            <a href="index.html#" class="text-dark hover-primary fw-bold">You</a>
-                            <p class="text-muted fs-12 mb-0">3 minutes</p>
-                        </div>
-                        <span class="msg-avatar">
-                                <img src="images/avatar/3.jpg" class="avatar avatar-lg" alt="">
-                            </span>
-                    </div>
-                    <div class="cm-msg-text">
-                        My name is Anne Clarc.
-                    </div>
-                </div>
-                <div class="chat-msg user">
-                    <div class="d-flex align-items-center">
-                            <span class="msg-avatar">
-                                <img src="images/avatar/2.jpg" class="avatar avatar-lg" alt="">
-                            </span>
-                        <div class="mx-10">
-                            <a href="index.html#" class="text-dark hover-primary fw-bold">Mayra Sibley</a>
-                            <p class="text-muted fs-12 mb-0">40 seconds</p>
-                        </div>
-                    </div>
-                    <div class="cm-msg-text">
-                        Nice to meet you Anne.<br>How can i help you?
-                    </div>
-                </div>
-            </div><!--chat-log -->
-        </div>
-        <div class="chat-input">
-            <form>
-                <input type="text" id="chat-input" placeholder="Send a message..."/>
-                <button type="submit" class="chat-submit" id="chat-submit">
-                    <span class="icon-Send fs-22"></span>
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Page Content overlay -->
 
 
 <!-- Vendor JS -->
@@ -779,20 +680,118 @@ WHERE age > 18
 
     </script>
 
-<!--<script>-->
-<!--        var editor = ace.edit("template_query");-->
-<!--        editor.setTheme("ace/theme/chrome");-->
-<!--        editor.session.setMode("ace/mode/sql");-->
-<!--        editor.setOptions({-->
-<!--            enableBasicAutocompletion: true,-->
-<!--            enableSnippets: true,-->
-<!--            enableLiveAutocompletion: true,-->
-<!--            fontSize: "16px",-->
-<!--            showLineNumbers: true,    // Enable automatic line numbers-->
-<!--            showGutter: true,-->
-<!--            showPrintMargin: false-->
-<!--        });-->
-<!--    </script>-->
+<script>
+  renderTree(treeJson);
+</script>
+<script>
+    function reRenderTree(){
+        const treeContainer = document.getElementById("query_ast");
+        const div = document.getElementById('query_tree_ast');
+
+        resizeObserver = new ResizeObserver(entries => {
+          for (const entry of entries) {
+            const { width, height } = entry.contentRect;
+            if (width > 0 && height > 0) {
+                if (div.classList.contains('box-fullscreen')) {
+                    treeContainer.style.height = "100vh";
+                    treeContainer.style.width = "100vw";
+                  } else {
+                    treeContainer.style.width = "100%";
+                    treeContainer.style.height = "600px";
+                }
+                requestAnimationFrame(() => {
+                drawTree(currentTreeData);
+              });
+            }
+          }
+        });
+        //drawTree(currentTreeData);
+    resizeObserver.observe(treeContainer);
+    }
+
+    // const containerEl = document.getElementById("query_ast");
+    // const fsBtn = document.getElementById("fullTreeBtn");
+    //
+    // fsBtn.addEventListener("click", () => {
+    //   containerEl.requestFullscreen();
+    // });
+    //
+    // document.addEventListener("fullscreenchange", () => {
+    //   if (document.fullscreenElement === containerEl) {
+    //     containerEl.style.height = "100vh";
+    //     containerEl.style.width = "100vw";
+    //
+    //   } else {
+    //     containerEl.style.height = "600px";
+    //     containerEl.style.width = "100%";
+    //   }
+    //
+    //   requestAnimationFrame(() => {
+    //     drawTree(currentTreeData);
+    //   });
+    // });
+    //
+    // // Resize when window changes
+    // window.addEventListener("resize", () => {
+    //   drawTree(currentTreeData);
+    // });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    var markdownText = `
+SYSTEM MESSAGE:
+**Task:** Rewrite the provided PostgreSQL query template to optimize their performance. The query template has the following masked data:
+1. **STRING values**: masked by "&&&"
+2. **List of STRINGS**: masked "N_SSS". for example a list of strings "'a','b','c'" masked by "N_SSS".
+3. DOUBLE values masked by "^^^".
+4. **List of DOUBLE values**: masked "N_DDD". for example a list of strings "0.3,0.66,1.98" masked by "N_DDD".
+5. and INT values masked by "###" strings.
+6. **List of IN values**: masked "N_III". for example a list of strings "10,20,30" masked by "N_III".
+
+###  Function Implementation Task: Implement only-and-only functions in PostgreSQL for a database that are breakdown the performance. Don't implement naive functions, including but not limited to the following:
+1. **Anticipate Join Enhancements**:
+  - Develop functions that leverage advanced techniques to optimize join operations. For instance, consider implementing a Bloom filter or data sketching to enhance sequence scans and filtering processes. These techniques can significantly reduce the computational overhead by pre-filtering data.
+
+2. **Cardinality Estimation Functions**:
+  - Create functions that accurately estimate cardinality (more sophisticated methods might involve histograms), which is crucial for optimizing query plans. Accurate cardinality estimation helps in selecting the most efficient join strategies and execution paths.
+
+3. **Data Skipping Functions**:
+  - Implement functions that intelligently skip large volumes of unnecessary data during join and filter operations. This can be achieved by using techniques like partition pruning or leveraging metadata to avoid processing irrelevant data, thus improving performance.
+
+4. **Correlation Analysis and Key Identification**:
+  - Analyze the schema to identify correlations between columns, primary keys (PK), and foreign keys (FK).
+  - Determine potential candidate keys not explicitly mentioned in the schema, such as columns with distinct counts equal to the number of table records (e.g., \`social_code\`).
+  - Use this analysis to optimize query processing by leveraging these candidate keys.
+
+5. **Filter Function Implementation for Query Optimization**:
+   - Develop filter functions to enhance the performance of range queries, especially for string values used in "LIKE" operations, as well as numerical and datetime ranges.
+   - Consider implementing advanced string matching algorithms or indexing strategies to accelerate these queries.
+
+6. **Hash Data Structure Recommendations**:
+   - Implement specific hash data structures tailored to the table and column characteristics. Do exactly with SQL commands and don't return a pure string results.
+   - For instance, implement enabling Table Hash over Binary Hash when it aligns better with the data distribution and access patterns.
+
+7. **Reuse Metadata**:
+  -- Instead of calculating the statistical numbers for a table, utilize the existing metadata within the SCHEMA that available in Prompt. For instance, min, max. avg, distinct values are available in our prompt.
+
+###  Input: Database schema which is table and column definitions, including data types, primary keys, foreign keys, and indexes. Data catalog information which is statistical data for each column, such as distinct value counts and data distribution.
+###  Output:1. ** Query Template Format**: Keep masked strings "&&&", "^^^", "###", "N_SSS", "N_III", and "N_DDD".
+2. **Generate Optimized Queries**: Create a list of 10 optimized SQL queries, strictly following the provided rules and schema metadata. Ensure each query is well-structured and efficient.
+3. **Sort Queries by Performance**: Rank the generated queries based on their performance, placing the highest-performing queries first. Performance should be determined based on efficiency metrics such as execution time and resource utilization.
+4. **Format the Output:**: The output must be enclosed within SQL code block markers:
+    + \`\`\`sql
+      ... (queries) ...
+      \`\`\`
+    + Each query should be formatted as:
+      - Query#ID: SQL
+      - #ID represents the unique query identifier.
+      - SQL is the generated SQL query.
+`;
+
+    var html = marked.parse(markdownText);
+    document.getElementById('markdown-preview').innerHTML = html;
+</script>
 
 </body>
 </html>

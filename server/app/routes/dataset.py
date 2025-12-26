@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request, make_response, Response
 from resequel.catalog.Catalog import load_catalog
 from resequel.catalog.Catalog import CatalogInfo
-# from resequel.util.Config import load_query_params
 import json
 import plotly.express as px
 from plotly.utils import PlotlyJSONEncoder
@@ -21,6 +20,7 @@ def get_catalog():
     data = request.get_json()
 
     dataset_name = data.get('dataset_name', '').strip()
+    dbms = data.get('dbms', '').strip()
     if not dataset_name:
         return jsonify({"error": "Datasetname are required"}), 400
     ds_name = dataset_name
@@ -85,13 +85,13 @@ def get_catalog():
     fig_cols = go.Figure(data=dt_data)
 
     fig_cols.update_xaxes(categoryorder="array", categoryarray=x_labels, tickangle=-45)
-    fig_cols.update_layout(barmode='stack', autosize=True, margin=dict(t=50, b=150, l=80, r=50),
+    fig_cols.update_layout(barmode='stack', autosize=True, margin=dict(t=3, b=3, l=3, r=3),
                            legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
 
     fig = px.bar(
         x=x_labels,
         y=y_values,
-        title=f"Dataset: {dataset_name}",
+        #title=f"Dataset: {dataset_name}",
         labels={"x": "Table", "y": "Cardinality"},
         text_auto='.2s',
         color_discrete_sequence=["crimson"],  # <-- set all bars color
@@ -106,14 +106,12 @@ def get_catalog():
     fig.update_xaxes(categoryorder="array", categoryarray=x_labels, tickangle=-45)
 
     # Set chart background to white
-    fig.update_layout(autosize=True, margin=dict(t=50, b=150, l=80, r=50)
-                      )
+    fig.update_layout(autosize=True, margin=dict(t=3, b=3, l=3, r=3))
 
     payload = {"figures": {
         "fig_table_cardinality": fig,
         "fig_tables_dtype": fig_cols}
     }
-    print(payload)
 
     return Response(
         json.dumps(payload, cls=PlotlyJSONEncoder),
@@ -129,6 +127,7 @@ def get_workload():
     data = request.get_json()
 
     dataset_name = data.get('dataset_name', '').strip()
+    dbms = data.get('dbms', '').strip()
     if not dataset_name:
         return jsonify({"error": "Datasetname are required"}), 400
     ds_name = dataset_name
@@ -146,9 +145,8 @@ def get_workload():
         ds_name = ds_name.lower()
 
     # _workload_path
-    template_path = f"{_workload_path}/PostgreSQL/{ds_name}-template/"
+    template_path = f"{_workload_path}/{dbms}/{ds_name}-template/"
     query_params = load_query_params(template_path=template_path)
-    # print(f">>>>>>>>>>>>> {ds_name} >>> {len(query_params)} >> {template_path}")
     template_cardinality = dict()
     for qp in query_params:
         (tid, params) = query_params[qp]
@@ -230,7 +228,7 @@ def get_workload():
     ]
 
     layout = go.Layout(
-        title=f"Workload Templates and Cardinality (Dataset: {dataset_name})",
+        #title=f"Workload Templates and Cardinality (Dataset: {dataset_name})",
 
         # --- remove backgrounds ---
         paper_bgcolor="rgba(0,0,0,0)",
@@ -256,7 +254,7 @@ def get_workload():
             y=1
         ),
 
-        margin=dict(l=40, r=220, t=60, b=40),
+        margin=dict(l=3, r=100, t=3, b=3),
 
         annotations=[
             dict(
@@ -294,10 +292,10 @@ def get_workload():
         tickformat="~s"  # 133,110,000 → 133M
     )
     fig_ratio.update_layout(
+        autosize=True, margin=dict(t=10, b=3, l=3, r=3),
         showlegend=False,
         title_text=""  # remove title
     )
-
 
     payload = {"figures": {
         "fig_template_cardinality": fig, "fig_template_ratio": fig_ratio,

@@ -2,6 +2,7 @@ from .dataset import catalog_bp
 from .dataset import workload_bp
 from .dataset import schema_bp
 from .rewrite import template_bp
+from .rewrite import rewrite_bp
 
 
 def register_blueprints(app):
@@ -9,3 +10,4 @@ def register_blueprints(app):
     app.register_blueprint(workload_bp)
     app.register_blueprint(schema_bp)
     app.register_blueprint(template_bp)
+    app.register_blueprint(rewrite_bp)

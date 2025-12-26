@@ -1,10 +1,8 @@
 async function callGetCatalogAPI() {
             const dataset_name = document.getElementById('workload-dataset').value.trim();
-            if (!dataset_name) {
-                document.getElementById('result').textContent = 'Please Select a Workload!';
-                return;
-            }
-            const payload = { dataset_name: dataset_name};
+            const dbms = document.getElementById('dbms').value.trim();
+
+            const payload = { dataset_name: dataset_name, dbms: dbms};
             try {
                  const response = await fetch("http://127.0.0.1:9000/get_catalog", {
                     method: 'POST',
@@ -39,12 +37,8 @@ async function callGetCatalogAPI() {
 
 async function callGetWorkloadAPI() {
             const dataset_name = document.getElementById('workload-dataset').value.trim();
-            if (!dataset_name) {
-                document.getElementById('result').textContent = 'Please Select a Workload!';
-                return;
-            }
-
-            const payload = { dataset_name: dataset_name};
+            const dbms = document.getElementById('dbms').value.trim();
+            const payload = { dataset_name: dataset_name, dbms: dbms};
 
             try {
                 const response = await fetch('http://127.0.0.1:9000/get_workload', {
@@ -81,12 +75,13 @@ async function callGetWorkloadAPI() {
 
 
 async function callGetTemplateAPI() {
-            const orig_query = ace.edit('orig_query').getValue()//document.getElementById('orig_query').innerText.trim();
+            const orig_query = ace.edit('orig_query').getValue()
+            const dbms = document.getElementById('dbms').value.trim();
             if (!orig_query) {
                 document.getElementById('result').textContent = 'Please Select a Workload!';
                 return;
             }
-            const payload = { orig_query: orig_query};
+            const payload = { orig_query: orig_query, dbms: dbms};
             try {
                 const response = await fetch('http://127.0.0.1:9000/get_template', {
                     method: 'POST',
@@ -118,25 +113,74 @@ async function callGetTemplateAPI() {
                             targetDiv.innerHTML = value;
                         }
                         else if (key === 'query_analysis'){
-                           drawTree(value);
+                           renderTree(value);
                         }
-
-                        // const targetDiv = document.getElementById(key);
-                        // if (!targetDiv) {
-                        //     console.warn(`Div with id="${key}" not found`);
-                        //     return;
-                        // }
-                        // targetDiv.innerHTML = value;
-                        // if (key === 'query_template'){
-                        //     highlightSQL(targetDiv);
-                        // }
                 });
+                    callReWriteAPI();
 
                 } else {
                     document.getElementById('result').textContent = 'Error: ' + JSON.stringify(data, null, 2);
                 }
             } catch (error) {
                 document.getElementById('query_template').textContent = 'Network error: ' + error.message;
+            }
+        }
+
+async function callReWriteAPI() {
+            const orig_query = ace.edit('orig_query').getValue()
+            const dbms = document.getElementById('dbms').value.trim();
+            const dataset_name = document.getElementById('workload-dataset').value.trim();
+            const llm = document.getElementById('llm').value.trim();
+            const number_of_versions = document.getElementById('number-of-versions').value.trim();
+            if (!orig_query) {
+                document.getElementById('result').textContent = 'Please Select a Workload!';
+                return;
+            }
+            const payload = { orig_query: orig_query, dbms: dbms, dataset_name: dataset_name, llm: llm, number_of_versions:number_of_versions};
+            try {
+                const response = await fetch('http://127.0.0.1:9000/re_write', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const rewrite = await response.json();
+                    alert(rewrite.data);
+                    Object.entries(rewrite.data).forEach(([key, value]) => {
+                        if (key === 'selected_query'){
+                            var editor = ace.edit("new_query");
+                            editor.setValue(value, -1);
+                            editor.setTheme("ace/theme/chrome");
+                            editor.session.setMode("ace/mode/sql");
+                            editor.setOptions({
+                                enableBasicAutocompletion: true,
+                                enableSnippets: true,
+                                enableLiveAutocompletion: true,
+                                fontSize: "16px",
+                                showLineNumbers: true,    // Enable automatic line numbers
+                                showGutter: true,
+                                showPrintMargin: false
+                            });
+                            editor.setReadOnly(true);
+                        }
+                        else if (key === 'verified_queries_plot'){
+                           const targetDiv = document.getElementById("fig_verified_queries_exe");
+                            targetDiv.innerHTML = "";
+                            Plotly.newPlot(targetDiv, value.data, value.layout, { responsive: true, displayModeBar: false });
+                            const resizeObserver = new ResizeObserver(() => {Plotly.Plots.resize(targetDiv);});
+                            resizeObserver.observe(targetDiv);
+                        }
+                        // else if (key === 'query_analysis'){
+                        //    renderTree(value);
+                        // }
+                });
+
+                } else {
+                    document.getElementById('new_query').textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('new_query').textContent = 'Network error: ' + error.message;
             }
         }
 
@@ -194,12 +238,206 @@ async function callGetTemplateAPI() {
 //     .text(d => d.data.label);
 // }
 
+// function drawTree(data) {
+//   const container = d3.select("#query_ast");
+//   container.selectAll("*").remove();
+//
+//   const width = container.node().clientWidth || 500;
+//   const height = container.node().clientHeight || 600;
+//
+//   // ---------- SVG + ZOOM ----------
+//   const svg = container.append("svg")
+//     .attr("width", width)
+//     .attr("height", height)
+//     .call(
+//       d3.zoom()
+//         .scaleExtent([0.5, 2])
+//         .on("zoom", (event) => {
+//           g.attr("transform", event.transform);
+//         })
+//     );
+//
+//   const g = svg.append("g");
+//
+//   let i = 0;
+//   const duration = 400;
+//
+//   // ---------- ROOT ----------
+//   const root = d3.hierarchy(data, d => d.children);
+//   root.x0 = 0;
+//   root.y0 = 0;
+//
+//   // Compact layout
+//   const treeLayout = d3.tree()
+//     .nodeSize([50, 80]);
+//
+//   update(root);
+//
+//   // ---------- UPDATE ----------
+//   function update(source) {
+//     treeLayout(root);
+//
+//     const nodes = root.descendants();
+//     const links = root.links();
+//
+//     // ---------- CENTER TREE ----------
+//     const xExtent = d3.extent(nodes, d => d.x);
+//     const treeWidth = xExtent[1] - xExtent[0];
+//     const offsetX = (width - treeWidth) / 2 - xExtent[0];
+//
+//     g.transition()
+//       .duration(duration)
+//       .attr("transform", `translate(${offsetX},40)`);
+//
+//     // ---------- LINKS ----------
+//     const link = g.selectAll("path.link")
+//       .data(links, d => d.target.id);
+//
+//     link.enter()
+//       .append("path")
+//       .attr("class", "link")
+//       .attr("stroke", "#000")
+//       .attr("fill", "none")
+//       .attr("stroke-width", 1.2)
+//       .attr("d", () => diagonal(source, source))
+//       .merge(link)
+//       .transition()
+//       .duration(duration)
+//       .attr("d", d => diagonal(d.source, d.target));
+//
+//     link.exit().remove();
+//
+//     // ---------- NODES ----------
+//     const node = g.selectAll("g.node")
+//       .data(nodes, d => d.id || (d.id = ++i));
+//
+//     const nodeEnter = node.enter()
+//       .append("g")
+//       .attr("class", "node")
+//       .attr("transform", `translate(${source.x0},${source.y0})`)
+//       .on("click", (e, d) => toggle(d));
+//
+//     // Circle
+//     nodeEnter.append("circle")
+//       .attr("r", 1e-6)
+//       .attr("stroke", "#333")
+//       .attr("fill", d => colorByLabel(d.data.label));
+//
+// nodeEnter.append("text")
+//   .attr("text-anchor", "middle")
+//   .attr("y", d => (!d.children && !d._children ? 16 : -10)) // 👈 key logic
+//   .style("font-size", "11px")
+//   .style("font-weight", "500")
+//   .style("pointer-events", "none")
+//   .text(d => d.data.label)
+//   .call(wrap, 80);
+//
+//
+//
+//     // Tooltip
+//     nodeEnter.append("title")
+//       .text(d => d.data.label);
+//
+//     const nodeUpdate = nodeEnter.merge(node);
+//
+//     nodeUpdate.transition()
+//       .duration(duration)
+//       .attr("transform", d => `translate(${d.x},${d.y})`);
+//
+//     nodeUpdate.select("circle")
+//       .attr("r", 6);
+//
+//     node.exit().remove();
+//
+//     nodes.forEach(d => {
+//       d.x0 = d.x;
+//       d.y0 = d.y;
+//     });
+//   }
+//
+//   // ---------- TOGGLE ----------
+//   function toggle(d) {
+//     if (d.children) {
+//       d._children = d.children;
+//       d.children = null;
+//     } else if (d._children) {
+//       d.children = d._children;
+//       d._children = null;
+//     }
+//     update(d);
+//   }
+//
+//   // ---------- LINK PATH ----------
+//   function diagonal(s, t) {
+//     return `
+//       M ${s.x} ${s.y}
+//       V ${(s.y + t.y) / 2}
+//       H ${t.x}
+//       V ${t.y}
+//     `;
+//   }
+//
+//   // ---------- TEXT WRAP ----------
+//   function wrap(text, width) {
+//     text.each(function () {
+//       const textSel = d3.select(this);
+//       const words = textSel.text().split(/\s+/).reverse();
+//       let word;
+//       let line = [];
+//       let lineNumber = 0;
+//       const lineHeight = 1.0;
+//       let tspan = textSel.text(null)
+//         .append("tspan")
+//         .attr("x", 0)
+//         .attr("dy", "0em");
+//
+//       while (word = words.pop()) {
+//         line.push(word);
+//         tspan.text(line.join(" "));
+//         if (tspan.node().getComputedTextLength() > width) {
+//           line.pop();
+//           tspan.text(line.join(" "));
+//           line = [word];
+//           tspan = textSel.append("tspan")
+//             .attr("x", 0)
+//             .attr("dy", ++lineNumber * lineHeight + "em")
+//             .text(word);
+//         }
+//       }
+//     });
+//   }
+//
+//   // ---------- COLORS ----------
+//   function colorByLabel(label = "") {
+//     const l = label.toUpperCase();
+//     if (l === "SELECT") return "#bfdbfe";
+//     if (l === "FROM") return "#fde68a";
+//     if (l === "WHERE") return "#fecaca";
+//     if (l.includes("JOIN")) return "#ddd6fe";
+//     return "#dcfce7";
+//   }
+// }
+
+let currentTreeData = null;
+
+function renderTree(data) {
+  currentTreeData = data;
+  drawTree(data);
+}
+
+// 🔁 Re-render on resize
+window.addEventListener("resize", () => {
+  if (currentTreeData) {
+    drawTree(currentTreeData);
+  }
+});
+
 function drawTree(data) {
-  const container = d3.select("#query_ast");
+    const container = d3.select("#query_ast");
   container.selectAll("*").remove();
 
-  const width = container.node().clientWidth || 1600;
-  const height = container.node().clientHeight || 600;
+  // 🔹 Get container size dynamically
+  const { width, height } = container.node().getBoundingClientRect();
 
   // ---------- SVG + ZOOM ----------
   const svg = container.append("svg")
@@ -207,7 +445,7 @@ function drawTree(data) {
     .attr("height", height)
     .call(
       d3.zoom()
-        .scaleExtent([0.5, 2])
+        .scaleExtent([0.4, 2])
         .on("zoom", (event) => {
           g.attr("transform", event.transform);
         })
@@ -223,9 +461,9 @@ function drawTree(data) {
   root.x0 = 0;
   root.y0 = 0;
 
-  // Compact layout
+  // Compact tree
   const treeLayout = d3.tree()
-    .nodeSize([50, 80]);
+    .nodeSize([60, 90]);
 
   update(root);
 
@@ -252,8 +490,8 @@ function drawTree(data) {
     link.enter()
       .append("path")
       .attr("class", "link")
-      .attr("stroke", "#000")
       .attr("fill", "none")
+      .attr("stroke", "#000")
       .attr("stroke-width", 1.2)
       .attr("d", () => diagonal(source, source))
       .merge(link)
@@ -273,22 +511,21 @@ function drawTree(data) {
       .attr("transform", `translate(${source.x0},${source.y0})`)
       .on("click", (e, d) => toggle(d));
 
-    // Circle
+    // Node circle
     nodeEnter.append("circle")
       .attr("r", 1e-6)
       .attr("stroke", "#333")
       .attr("fill", d => colorByLabel(d.data.label));
 
-nodeEnter.append("text")
-  .attr("text-anchor", "middle")
-  .attr("y", d => (!d.children && !d._children ? 16 : -10)) // 👈 key logic
-  .style("font-size", "11px")
-  .style("font-weight", "500")
-  .style("pointer-events", "none")
-  .text(d => d.data.label)
-  .call(wrap, 80);
-
-
+    // Node text
+    nodeEnter.append("text")
+      .attr("text-anchor", "middle")
+      .attr("y", d => (!d.children && !d._children ? 18 : -16)) // 👈 leaf below
+      .style("font-size", "11px")
+      .style("font-weight", "500")
+      .style("pointer-events", "none")
+      .text(d => d.data.label)
+      .call(wrap, 90);
 
     // Tooltip
     nodeEnter.append("title")
@@ -342,6 +579,7 @@ nodeEnter.append("text")
       let line = [];
       let lineNumber = 0;
       const lineHeight = 1.0;
+
       let tspan = textSel.text(null)
         .append("tspan")
         .attr("x", 0)
@@ -363,7 +601,7 @@ nodeEnter.append("text")
     });
   }
 
-  // ---------- COLORS ----------
+  // ---------- COLOR LOGIC ----------
   function colorByLabel(label = "") {
     const l = label.toUpperCase();
     if (l === "SELECT") return "#bfdbfe";
@@ -373,6 +611,7 @@ nodeEnter.append("text")
     return "#dcfce7";
   }
 }
+
 
 
 

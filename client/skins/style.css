@@ -192,7 +192,7 @@
 /* ---------- Plot containers ---------- */
 .plot-box {
     width: 100%;
-    min-height: 400px;
+    min-height: 350px;
 }
 
 .widget {
@@ -505,37 +505,7 @@ canvas {
     font-size: 1.1rem;
 }
 
-#set-llm {
-  width: 100%;
-  min-height: 38px;
-  padding: .5rem .6rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  resize: vertical;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
-  line-height: 1.4;
-}
-#set-llm:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(0, 175, 239, 0.2);
-}
-#set-llm::placeholder {
-  color: #888;
-  opacity: 1;
-}
-[data-theme="light"] #set-llm {
-  background: #fff;
-  color: #333;
-  border-color: #ccc;
-}
-[data-theme="light"] #set-llm:focus {
-  box-shadow: 0 0 0 2px rgba(0, 175, 239, 0.15);
-}
+
 
 .close-settings {
   cursor: pointer;
@@ -547,14 +517,14 @@ canvas {
 }
 
 /* === CUSTOM DOT-BAR SLIDER === */
-.custom-range {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  position: relative;
-  user-select: none;
-}
+/*.custom-range {*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 12px;*/
+/*  margin-top: 8px;*/
+/*  position: relative;*/
+/*  user-select: none;*/
+/*}*/
 .dots {
   display: flex;
   gap: 6px;
@@ -583,6 +553,6 @@ canvas {
 
 .plot-box {
     width: 100%;
-    min-height: 400px;
+    /*min-height: 400px;*/
 }
 
