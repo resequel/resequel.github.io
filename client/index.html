@@ -138,7 +138,7 @@
 							<div class="box overflow-h">
 								<div class="box-body" style="height:30rem;">
 									<div class="d-flex justify-content-between align-items-center">
-										<h4 class="me-10 mb-0 fw-600">Workload Template Cardinality</h4>
+										<h4 class="me-10 mb-0 fw-600">Workload Template and Cardinality</h4>
 									</div>
 									<div>
                                         <div id="fig_template_cardinality" class="plot-box"></div>
@@ -222,7 +222,7 @@ WHERE age > 18
                         <div class="col-xl-5 col-12">
                             <div class="box" style="margin-bottom: .5rem">
                                 <div class="box-header d-flex justify-content-between">
-                                    <h4 class="box-title">Verified Queries Performance</h4>
+                                    <h4 class="box-title">Performance of Verified Queries</h4>
                                     <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>
                                 </div>
                                 <div class="box-body ps-0 pb-0" style="padding: 0px">
@@ -231,38 +231,89 @@ WHERE age > 18
                             </div>
                         </div>
 
-                    <div class="col-xl-4 col-12">
- 						<div class="box" id="query_tree_ast" style="margin-bottom: .5rem">
-                            <div class="box-header d-flex justify-content-between">
-                                <h4 class="box-title">Analysis Query</h4>
-                                <h6 class="box-title text-primary">
-                                    <ul class="box-controls pull-right">
-                                      <li><a class="box-btn-fullscreen" href="#" onclick="reRenderTree()"></a></li>
+                         <div class="col-xl-7 col-12">
+                            <div class="box" style="margin-bottom: .5rem">
+                                <div class="box-header d-flex justify-content-between">
+                                    <h4 class="box-title">Generated SQL Versions</h4>
+                                    <h6 class="box-title text-primary"><i class="fa-solid fa-code" style="color: #e60000"></i></h6>
+                                </div>
+                                <div class="box-body ps-0 pb-0" style="padding: 0px; min-height: 450px" >
+                                    <!---------------------------------------------------->
+                                    <ul class="nav nav-pills bg-nav-pills nav-justified mb-3" id="verified_queries_sql_tabs">
                                     </ul>
-                                </h6>
-                            </div>
-                            <div class="box-body ps-0 pb-0" style="padding: 0px">
-                                <div id="query_ast" style="width: 100%; height: 600px; overflow: auto;"></div>
+
+                                    <div class="tab-content px-20" >
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_1" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_2" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_3" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_4" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_5" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_6" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_7" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_8" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_9" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_10" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_11" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_12" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_13" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_14" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_15" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_16" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_17" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_18" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_19" contenteditable="false" spellcheck="false"></div>
+                                        <div class="tab-pane sql-editor-src"  id="sql_ver_20" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_21" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_22" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_23" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_24" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_25" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_26" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_27" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_28" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_29" contenteditable="false" spellcheck="false"></div>
+                                         <div class="tab-pane sql-editor-src"  id="sql_ver_30" contenteditable="false" spellcheck="false"></div>
+
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="box-body" style="padding: 0px">
-                            <div class="box box-slided-up">
-							  <div class="box-header with-border">
-								<h4 class="box-title">Query Releated Schema</h4>
-								<ul class="box-controls pull-right">
-								  <li><a class="box-btn-slide" href="#"></a></li>
-								</ul>
-							  </div>
-
-							  <div class="box-body" style="display: none;">
-
-							  </div>
-				</div>
-                        </div>
-
                     </div>
+<!--                <div class="row">-->
+<!--                    <div class="col-xl-6 col-12">-->
+<!-- 						<div class="box" id="query_tree_ast" style="margin-bottom: .5rem">-->
+<!--                            <div class="box-header d-flex justify-content-between">-->
+<!--                                <h4 class="box-title">Analysis of Input SQL Query</h4>-->
+<!--                                <h6 class="box-title text-primary">-->
+<!--                                    <ul class="box-controls pull-right">-->
+<!--                                      <li><a class="box-btn-fullscreen" href="#" onclick="reRenderTree()"></a></li>-->
+<!--                                    </ul>-->
+<!--                                </h6>-->
+<!--                            </div>-->
+<!--                            <div class="box-body ps-0 pb-0" style="padding: 0px">-->
+<!--                                <div id="query_ast" style="width: 100%; height: 600px; overflow: auto;"></div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
 
-                </div>
+<!--                    <div class="col-xl-6 col-12">-->
+<!-- 						<div class="box" id="new_query_tree_ast" style="margin-bottom: .5rem">-->
+<!--                            <div class="box-header d-flex justify-content-between">-->
+<!--                                <h4 class="box-title">Analysis of Output SQL Query</h4>-->
+<!--                                <h6 class="box-title text-primary">-->
+<!--                                    <ul class="box-controls pull-right">-->
+<!--                                      <li><a class="box-btn-fullscreen" href="#" onclick="reRenderTree()"></a></li>-->
+<!--                                    </ul>-->
+<!--                                </h6>-->
+<!--                            </div>-->
+<!--                            <div class="box-body ps-0 pb-0" style="padding: 0px">-->
+<!--                                <div id="new_query_ast" style="width: 100%; height: 600px; overflow: auto;"></div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                </div>-->
                 <!------------------------------------------------------------------->
 
                 <!------------------------------------------------------------------->

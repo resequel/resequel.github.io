@@ -452,6 +452,8 @@ def get_versions(dataset_name, query: str, dbms: str, number_of_versions:int, ll
             verified_queries_exe = dict()
             verified_queries_ids = tdf["verified_queries"].reset_index().iat[0, 1].split(";")
             verified_queries_sqls = []
+            verified_queries_sqls_tabs = []
+            verified_queries_sqls_code = []
             if tdf["error_count"].reset_index().iat[0, 1] > 0:
                 error_query_ids =  tdf["error_queries"].reset_index().iat[0, 1].split(";")
             else:
@@ -472,12 +474,16 @@ def get_versions(dataset_name, query: str, dbms: str, number_of_versions:int, ll
             all_ids.extend(error_query_ids)
             all_ids.extend(failed_queries_ids)
 
+            verified_queries_sqls_dict = dict()
+            tab_lbl = 0
             for ids in all_ids:
                 query_rewrite_fname = f"{_workload_path}/{dbms}/{ds_name}-{llm}/{query_id}-{ids}.sql"
                 if os.path.exists(query_rewrite_fname):
                     new_query = read_text_file_line_by_line(query_rewrite_fname, ignore_comments=False)
                     if ids in verified_queries_ids:
-                        verified_queries_sqls.append(new_query)
+                        tab_lbl += 1
+                        tab_html_str, sql_html_str = get_versions_html(f"ver_{tab_lbl}", new_query, ids)
+                        verified_queries_sqls_dict[ids] = {"version_id": ids, "query": new_query, "tab_html": tab_html_str, "sql_html": new_query}
                     elif ids in error_query_ids:
                         error_queries_sqls.append(new_query)
                     elif ids in failed_queries_ids:
@@ -489,6 +495,8 @@ def get_versions(dataset_name, query: str, dbms: str, number_of_versions:int, ll
 
             versions["verified_queries"] = verified_queries_ids
             versions["verified_queries_sql"] = verified_queries_sqls
+            versions["verified_queries_sql_tabs"] = verified_queries_sqls
+            versions["verified_queries_sql_code"] = verified_queries_sqls
             versions["verified_queries_exe"] = verified_queries_exe
             versions["failed_queries"] = failed_queries_ids
             versions["failed_queries_sql"] = failed_queries_sqls
@@ -499,15 +507,32 @@ def get_versions(dataset_name, query: str, dbms: str, number_of_versions:int, ll
             if os.path.exists(query_select_fname):
                 versions["selected_query"] = read_text_file_line_by_line(query_select_fname, ignore_comments=False, comment_tag='--')
 
-            versions["verified_queries_plot"] = plot_verified_performance_exe(verified_queries_exe=verified_queries_exe,selected_query_id=selected_query_id, orig_query_id="21")
+            versions["verified_queries_plot"], keys = plot_verified_performance_exe(verified_queries_exe=verified_queries_exe,selected_query_id=selected_query_id, orig_query_id="21")
 
-
+            for k in keys:
+                verified_queries_sqls_tabs.append(verified_queries_sqls_dict[k]['tab_html'])
+                verified_queries_sqls_code.append(verified_queries_sqls_dict[k]['sql_html'])
+            versions["verified_queries_sql_tabs"] = "\n".join(verified_queries_sqls_tabs)
+            versions["verified_queries_sql_code"] = verified_queries_sqls_code
     else:
-        print("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
         pass
 
     return versions
 
+
+def get_versions_html(tab_id, sql, tab_lbl):
+    tab_html_str = f"""
+    <li class="nav-item">
+                                        <a href="#sql_{tab_id}" data-bs-toggle="tab" aria-expanded="false" class="nav-link rounded-0">
+                                            <i class="mdi mdi-home-variant d-md-none d-block"></i>
+                                            <span class="d-none d-md-block">#{tab_lbl}</span>
+                                        </a>
+                                    </li>
+    """
+
+    sql_html_str = f'<div class="tab-pane" id="{tab_id}"><p><div class="sql-editor" style="height: 450px" id="sql_{tab_id}" contenteditable="false" spellcheck="false">{sql}</div></p></div>'
+
+    return tab_html_str, sql_html_str
 
 def plot_verified_performance_exe(verified_queries_exe: dict(), selected_query_id: str, orig_query_id:str):
     verified_queries_exe = dict(sorted(verified_queries_exe.items(), key=lambda item: item[1]))
@@ -531,18 +556,21 @@ def plot_verified_performance_exe(verified_queries_exe: dict(), selected_query_i
 
 
     # Create the bar plot
+
     fig = px.bar(
         x=x_labels,
         y=y_values,
-        #title=f"Dataset: {dataset_name}",
         labels={"x": "", "y": "Execution Time [ms]"},
-        text_auto='.2s',
-        color=x_labels,  # each x label is treated as a category
+        color=x_labels,
         color_discrete_sequence=colors,
-
     )
 
-    fig.update_traces(textposition='outside')
+    fig.update_traces(
+        text=y_values,
+        texttemplate='%{y:.2f}',
+        textposition='outside'
+    )
+
     fig.for_each_trace(
         lambda t: t.update(name=label_map.get(t.name, t.name))
     )
@@ -550,10 +578,11 @@ def plot_verified_performance_exe(verified_queries_exe: dict(), selected_query_i
     fig.update_layout(
         autosize=True, margin=dict(t=10, b=3, l=3, r=3),
         showlegend=True,
-        title_text=""  # remove title
+        title_text="",  # remove title
+        legend_title_text = ""
     )
 
-    return fig
+    return fig,verified_queries_exe.keys()
 
 def normalize_sql(query: str) -> str:
         # Remove leading/trailing whitespace and collapse all whitespace to a single space

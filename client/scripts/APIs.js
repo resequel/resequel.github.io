@@ -112,9 +112,9 @@ async function callGetTemplateAPI() {
                             const targetDiv = document.getElementById("query_params");
                             targetDiv.innerHTML = value;
                         }
-                        else if (key === 'query_analysis'){
-                           renderTree(value);
-                        }
+                        // else if (key === 'query_analysis'){
+                        //    renderTree(value);
+                        // }
                 });
                     callReWriteAPI();
 
@@ -146,7 +146,6 @@ async function callReWriteAPI() {
 
                 if (response.ok) {
                     const rewrite = await response.json();
-                    alert(rewrite.data);
                     Object.entries(rewrite.data).forEach(([key, value]) => {
                         if (key === 'selected_query'){
                             var editor = ace.edit("new_query");
@@ -171,6 +170,16 @@ async function callReWriteAPI() {
                             const resizeObserver = new ResizeObserver(() => {Plotly.Plots.resize(targetDiv);});
                             resizeObserver.observe(targetDiv);
                         }
+                        else if (key === 'verified_queries_sql_tabs'){
+                           const targetDiv = document.getElementById("verified_queries_sql_tabs");
+                            targetDiv.innerHTML = value;
+                        }
+                         else if (key === 'verified_queries_sql_code'){
+                            value.forEach((item, index) => {
+                                apply_style("sql_ver_"+index, item);
+                            });
+
+                        }
                         // else if (key === 'query_analysis'){
                         //    renderTree(value);
                         // }
@@ -184,6 +193,26 @@ async function callReWriteAPI() {
             }
         }
 
+        async function apply_style(id, value) {
+            try {
+                // for (let i = 1; i <= 30; i++) {
+                    var editor = ace.edit(id);
+                    editor.setValue(value, -1);
+                    editor.setTheme("ace/theme/chrome");
+                    editor.session.setMode("ace/mode/sql");
+                    editor.setOptions({
+                        enableBasicAutocompletion: true,
+                        enableSnippets: true,
+                        enableLiveAutocompletion: true,
+                        fontSize: "16px",
+                        showLineNumbers: true,    // Enable automatic line numbers
+                        showGutter: true,
+                        showPrintMargin: false
+                    });
+                    editor.setReadOnly(true);
+                // }
+            } catch (error) { }
+        }
 
 // function drawTree(data) {
 //   const container = d3.select("#query_ast");
