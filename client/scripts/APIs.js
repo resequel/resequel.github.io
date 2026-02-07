@@ -1,10 +1,12 @@
+const server_ip = "http://127.0.0.1:9000";
+
 async function callGetCatalogAPI() {
             const dataset_name = document.getElementById('workload-dataset').value.trim();
             const dbms = document.getElementById('dbms').value.trim();
 
             const payload = { dataset_name: dataset_name, dbms: dbms};
             try {
-                 const response = await fetch("http://127.0.0.1:9000/get_catalog", {
+                 const response = await fetch(`${server_ip}/get_catalog`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -41,7 +43,7 @@ async function callGetWorkloadAPI() {
             const payload = { dataset_name: dataset_name, dbms: dbms};
 
             try {
-                const response = await fetch('http://127.0.0.1:9000/get_workload', {
+                const response = await fetch(`${server_ip}/get_workload`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -83,7 +85,7 @@ async function callGetTemplateAPI() {
             }
             const payload = { orig_query: orig_query, dbms: dbms};
             try {
-                const response = await fetch('http://127.0.0.1:9000/get_template', {
+                const response = await fetch(`${server_ip}/get_template`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -138,7 +140,7 @@ async function callReWriteAPI() {
             }
             const payload = { orig_query: orig_query, dbms: dbms, dataset_name: dataset_name, llm: llm, number_of_versions:number_of_versions};
             try {
-                const response = await fetch('http://127.0.0.1:9000/re_write', {
+                const response = await fetch(`${server_ip}/re_write`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -180,9 +182,9 @@ async function callReWriteAPI() {
                             });
 
                         }
-                        // else if (key === 'query_analysis'){
-                        //    renderTree(value);
-                        // }
+                        else if (key === 'query_analysis'){
+                           renderTree(value);
+                        }
                 });
 
                 } else {
