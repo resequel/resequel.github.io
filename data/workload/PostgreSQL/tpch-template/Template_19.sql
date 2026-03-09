@@ -1,27 +1,36 @@
-SELECT sum(l_extendedprice* (1 - l_discount)) AS revenue
-FROM lineitem,
-     part
-WHERE (p_partkey = l_partkey
-       AND p_brand = &&&
-       AND p_container IN (N_SSS)
-       AND l_quantity >= ###
-       AND l_quantity <= ###
-       AND p_size BETWEEN ### AND ###
-       AND l_shipmode IN (N_SSS)
-       AND l_shipinstruct = &&&)
-  OR (p_partkey = l_partkey
-      AND p_brand = &&&
-      AND p_container IN (N_SSS)
-      AND l_quantity >= ###
-      AND l_quantity <= ###
-      AND p_size BETWEEN ### AND ###
-      AND l_shipmode IN (N_SSS)
-      AND l_shipinstruct = &&&)
-  OR (p_partkey = l_partkey
-      AND p_brand = &&&
-      AND p_container IN (N_SSS)
-      AND l_quantity >= ###
-      AND l_quantity <= ###
-      AND p_size BETWEEN ### AND ###
-      AND l_shipmode IN (N_SSS)
-      AND l_shipinstruct = &&&);
+SELECT s_acctbal,
+       s_name,
+       n_name,
+       p_partkey,
+       p_mfgr,
+       s_address,
+       s_phone,
+       s_comment
+FROM part,
+     supplier,
+     partsupp,
+     nation,
+     region
+WHERE p_partkey = ps_partkey
+  AND s_suppkey = ps_suppkey
+  AND p_size = ###_A
+  AND p_type like &&&_A
+  AND s_nationkey = n_nationkey
+  AND n_regionkey = r_regionkey
+  AND r_name = &&&_B
+  AND ps_supplycost =
+    (SELECT min(ps_supplycost)
+     FROM partsupp,
+          supplier,
+          nation,
+          region
+     WHERE p_partkey = ps_partkey
+       AND s_suppkey = ps_suppkey
+       AND s_nationkey = n_nationkey
+       AND n_regionkey = r_regionkey
+       AND r_name = &&&_C)
+ORDER BY s_acctbal DESC,
+         n_name,
+         s_name,
+         p_partkey
+LIMIT ###_B;

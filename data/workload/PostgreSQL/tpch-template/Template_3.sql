@@ -1,19 +1,12 @@
-SELECT n_name,
-       sum(l_extendedprice * (1 - l_discount)) AS revenue
-FROM customer,
-     orders,
-     lineitem,
-     supplier,
-     nation,
-     region
-WHERE c_custkey = o_custkey
-  AND l_orderkey = o_orderkey
-  AND l_suppkey = s_suppkey
-  AND c_nationkey = s_nationkey
-  AND s_nationkey = n_nationkey
-  AND n_regionkey = r_regionkey
-  AND r_name = &&&
-  AND o_orderdate >= date &&&
-  AND o_orderdate < date &&& + interval &&& YEAR
-GROUP BY n_name
-ORDER BY revenue DESC;
+SELECT o_orderpriority,
+       count(*) AS order_count
+FROM orders
+WHERE o_orderdate >= date &&&_A
+  AND o_orderdate < date &&&_B + interval &&&_C MONTH
+  AND EXISTS
+    (SELECT *
+     FROM lineitem
+     WHERE l_orderkey = o_orderkey
+       AND l_commitdate < l_receiptdate)
+GROUP BY o_orderpriority
+ORDER BY o_orderpriority;

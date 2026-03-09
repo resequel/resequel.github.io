@@ -1,19 +1,19 @@
-WITH revenue (supplier_no, total_revenue) AS
-  (SELECT l_suppkey,
-          sum(l_extendedprice * (1 - l_discount))
-   FROM lineitem
-   WHERE l_shipdate >= date &&&
-     AND l_shipdate < date &&& + interval &&& MONTH
-   GROUP BY l_suppkey)
-SELECT s_suppkey,
-       s_name,
-       s_address,
-       s_phone,
-       total_revenue
-FROM supplier,
-     revenue
-WHERE s_suppkey = supplier_no
-  AND total_revenue =
-    (SELECT max(total_revenue)
-     FROM revenue)
-ORDER BY s_suppkey;
+SELECT n_name,
+       sum(l_extendedprice * (###_A - l_discount)) AS revenue
+FROM customer,
+     orders,
+     lineitem,
+     supplier,
+     nation,
+     region
+WHERE c_custkey = o_custkey
+  AND l_orderkey = o_orderkey
+  AND l_suppkey = s_suppkey
+  AND c_nationkey = s_nationkey
+  AND s_nationkey = n_nationkey
+  AND n_regionkey = r_regionkey
+  AND r_name = &&&_A
+  AND o_orderdate >= date &&&_B
+  AND o_orderdate < date &&&_C + interval &&&_D YEAR
+GROUP BY n_name
+ORDER BY revenue DESC;

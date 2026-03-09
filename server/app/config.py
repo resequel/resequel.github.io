@@ -1,8 +1,8 @@
 
-_catalog_path: str = "/home/saeed/Documents/resequel_data/catalog/"
-_workload_path: str = "/home/saeed/Documents/resequel_data/workload/"
-_template_path:str =  "/home/saeed/Documents/resequel_data/workload/"
-_rewrite_path:str = "/home/saeed/Documents/resequel_data/LLM-rewrite/"
+_catalog_path: str = "../data/catalog/"
+_workload_path: str = "../data/workload/"
+_template_path:str =  "../data/workload/"
+_rewrite_path:str = "../data/LLM-rewrite/"
 
 # import os
 

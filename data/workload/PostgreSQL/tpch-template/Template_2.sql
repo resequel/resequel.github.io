@@ -1,12 +1,10 @@
-SELECT c_count,
-       count(*) AS custdist
-FROM
-  (SELECT c_custkey,
-          count(o_orderkey)
-   FROM customer
-   LEFT OUTER JOIN orders ON c_custkey = o_custkey
-   AND o_comment not like &&&
-   GROUP BY c_custkey) AS c_orders (c_custkey, c_count)
-GROUP BY c_count
-ORDER BY custdist DESC,
-         c_count DESC;
+SELECT sum(l_extendedprice) / ^^^_A AS avg_yearly
+FROM lineitem,
+     part
+WHERE p_partkey = l_partkey
+  AND p_brand = &&&_A
+  AND p_container = &&&_B
+  AND l_quantity <
+    (SELECT ^^^_B * avg(l_quantity)
+     FROM lineitem
+     WHERE l_partkey = p_partkey);

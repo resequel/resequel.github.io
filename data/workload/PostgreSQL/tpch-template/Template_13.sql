@@ -1,21 +1,30 @@
-SELECT l_shipmode,
+SELECT o_year,
        sum(CASE
-               WHEN o_orderpriority = '1-URGENT'
-                    OR o_orderpriority = '2-HIGH' THEN 1
-               ELSE 0
-           END) AS high_line_count,
-       sum(CASE
-               WHEN o_orderpriority <> '1-URGENT'
-                    AND o_orderpriority <> '2-HIGH' THEN 1
-               ELSE 0
-           END) AS low_line_count
-FROM orders,
-     lineitem
-WHERE o_orderkey = l_orderkey
-  AND l_shipmode IN (N_SSS)
-  AND l_commitdate < l_receiptdate
-  AND l_shipdate < l_commitdate
-  AND l_receiptdate >= date &&&
-  AND l_receiptdate < date &&& + interval &&& YEAR
-GROUP BY l_shipmode
-ORDER BY l_shipmode;
+               WHEN nation = &&&_A THEN volume
+               ELSE ###_A
+           END) / sum(volume) AS mkt_share
+FROM
+  (SELECT extract(YEAR
+                  FROM o_orderdate) AS o_year,
+          l_extendedprice * (###_B - l_discount) AS volume,
+          n2.n_name AS nation
+   FROM part,
+        supplier,
+        lineitem,
+        orders,
+        customer,
+        nation n1,
+        nation n2,
+        region
+   WHERE p_partkey = l_partkey
+     AND s_suppkey = l_suppkey
+     AND l_orderkey = o_orderkey
+     AND o_custkey = c_custkey
+     AND c_nationkey = n1.n_nationkey
+     AND n1.n_regionkey = r_regionkey
+     AND r_name = &&&_B
+     AND s_nationkey = n2.n_nationkey
+     AND o_orderdate BETWEEN date &&&_C AND date &&&_D
+     AND p_type = &&&_E) AS all_nations
+GROUP BY o_year
+ORDER BY o_year;

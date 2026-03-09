@@ -1,30 +1,21 @@
-SELECT o_year,
-       sum(CASE
-               WHEN nation = &&& THEN volume
-               ELSE ###
-           END) / sum(volume) AS mkt_share
-FROM
-  (SELECT extract(YEAR
-                  FROM o_orderdate) AS o_year,
-          l_extendedprice * (### - l_discount) AS volume,
-          n2.n_name AS nation
-   FROM part,
-        supplier,
-        lineitem,
-        orders,
-        customer,
-        nation n1,
-        nation n2,
-        region
-   WHERE p_partkey = l_partkey
-     AND s_suppkey = l_suppkey
-     AND l_orderkey = o_orderkey
-     AND o_custkey = c_custkey
-     AND c_nationkey = n1.n_nationkey
-     AND n1.n_regionkey = r_regionkey
-     AND r_name = &&&
-     AND s_nationkey = n2.n_nationkey
-     AND o_orderdate BETWEEN date &&& AND date &&&
-     AND p_type = &&&) AS all_nations
-GROUP BY o_year
-ORDER BY o_year;
+SELECT s_name,
+       s_address
+FROM supplier,
+     nation
+WHERE s_suppkey IN
+    (SELECT ps_suppkey
+     FROM partsupp
+     WHERE ps_partkey IN
+         (SELECT p_partkey
+          FROM part
+          WHERE p_name like &&&_A)
+       AND ps_availqty >
+         (SELECT ^^^_A * sum(l_quantity)
+          FROM lineitem
+          WHERE l_partkey = ps_partkey
+            AND l_suppkey = ps_suppkey
+            AND l_shipdate >= date &&&_B
+            AND l_shipdate < date &&&_C + interval &&&_D YEAR))
+  AND s_nationkey = n_nationkey
+  AND n_name = &&&_E
+ORDER BY s_name;

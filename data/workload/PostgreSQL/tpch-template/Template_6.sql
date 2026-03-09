@@ -1,27 +1,27 @@
-SELECT s_name,
-       count(*) AS numwait
-FROM supplier,
-     lineitem l1,
+SELECT c_custkey,
+       c_name,
+       sum(l_extendedprice * (###_A - l_discount)) AS revenue,
+       c_acctbal,
+       n_name,
+       c_address,
+       c_phone,
+       c_comment
+FROM customer,
      orders,
+     lineitem,
      nation
-WHERE s_suppkey = l1.l_suppkey
-  AND o_orderkey = l1.l_orderkey
-  AND o_orderstatus = &&&
-  AND l1.l_receiptdate > l1.l_commitdate
-  AND EXISTS
-    (SELECT *
-     FROM lineitem l2
-     WHERE l2.l_orderkey = l1.l_orderkey
-       AND l2.l_suppkey <> l1.l_suppkey)
-  AND NOT EXISTS
-    (SELECT *
-     FROM lineitem l3
-     WHERE l3.l_orderkey = l1.l_orderkey
-       AND l3.l_suppkey <> l1.l_suppkey
-       AND l3.l_receiptdate > l3.l_commitdate)
-  AND s_nationkey = n_nationkey
-  AND n_name = &&&
-GROUP BY s_name
-ORDER BY numwait DESC,
-         s_name
-LIMIT ###;
+WHERE c_custkey = o_custkey
+  AND l_orderkey = o_orderkey
+  AND o_orderdate >= date &&&_A
+  AND o_orderdate < date &&&_B + interval &&&_C MONTH
+  AND l_returnflag = &&&_D
+  AND c_nationkey = n_nationkey
+GROUP BY c_custkey,
+         c_name,
+         c_acctbal,
+         c_phone,
+         n_name,
+         c_address,
+         c_comment
+ORDER BY revenue DESC
+LIMIT ###_B;

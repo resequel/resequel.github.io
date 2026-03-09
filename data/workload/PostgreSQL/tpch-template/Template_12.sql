@@ -1,18 +1,25 @@
-SELECT ps_partkey,
-       sum(ps_supplycost * ps_availqty) AS value
-FROM partsupp,
-     supplier,
-     nation
-WHERE ps_suppkey = s_suppkey
-  AND s_nationkey = n_nationkey
-  AND n_name = &&&
-GROUP BY ps_partkey
-HAVING sum(ps_supplycost * ps_availqty) >
-  (SELECT sum(ps_supplycost * ps_availqty) * 0.0001
-   FROM partsupp,
+SELECT nation,
+       o_year,
+       sum(amount) AS sum_profit
+FROM
+  (SELECT n_name AS nation,
+          extract(YEAR
+                  FROM o_orderdate) AS o_year,
+          l_extendedprice * (###_A - l_discount) - ps_supplycost * l_quantity AS amount
+   FROM part,
         supplier,
+        lineitem,
+        partsupp,
+        orders,
         nation
-   WHERE ps_suppkey = s_suppkey
+   WHERE s_suppkey = l_suppkey
+     AND ps_suppkey = l_suppkey
+     AND ps_partkey = l_partkey
+     AND p_partkey = l_partkey
+     AND o_orderkey = l_orderkey
      AND s_nationkey = n_nationkey
-     AND n_name = &&&)
-ORDER BY value DESC;
+     AND p_name like &&&_A) AS profit
+GROUP BY nation,
+         o_year
+ORDER BY nation,
+         o_year DESC;

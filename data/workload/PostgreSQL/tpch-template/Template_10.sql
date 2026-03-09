@@ -1,16 +1,21 @@
-SELECT l_returnflag,
-       l_linestatus,
-       sum(l_quantity) AS sum_qty,
-       sum(l_extendedprice) AS sum_base_price,
-       sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price,
-       sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) AS sum_charge,
-       avg(l_quantity) AS avg_qty,
-       avg(l_extendedprice) AS avg_price,
-       avg(l_discount) AS avg_disc,
-       count(*) AS count_order
-FROM lineitem
-WHERE l_shipdate <= date &&& - interval &&& DAY
-GROUP BY l_returnflag,
-         l_linestatus
-ORDER BY l_returnflag,
-         l_linestatus;
+SELECT p_brand,
+       p_type,
+       p_size,
+       count(DISTINCT ps_suppkey) AS supplier_cnt
+FROM partsupp,
+     part
+WHERE p_partkey = ps_partkey
+  AND p_brand <> &&&_A
+  AND p_type not like &&&_B
+  AND p_size IN N_III_A
+  AND ps_suppkey NOT IN
+    (SELECT s_suppkey
+     FROM supplier
+     WHERE s_comment like &&&_C)
+GROUP BY p_brand,
+         p_type,
+         p_size
+ORDER BY supplier_cnt DESC,
+         p_brand,
+         p_type,
+         p_size;

@@ -1,0 +1,24 @@
+
+SELECT c.c_name,
+       c.c_custkey,
+       o.o_orderkey,
+       o.o_orderdate,
+       o.o_totalprice,
+       sum(l.l_quantity)
+FROM customer c
+JOIN orders o ON c.c_custkey = o.o_custkey
+JOIN lineitem l ON o.o_orderkey = l.l_orderkey
+WHERE EXISTS
+    (SELECT 1
+     FROM lineitem l2
+     WHERE l2.l_orderkey = o.o_orderkey
+     GROUP BY l2.l_orderkey
+     HAVING sum(l2.l_quantity) > ###_A)
+GROUP BY c.c_name,
+         c.c_custkey,
+         o.o_orderkey,
+         o.o_orderdate,
+         o.o_totalprice
+ORDER BY o.o_totalprice DESC,
+         o.o_orderdate
+LIMIT ###_B;

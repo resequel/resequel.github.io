@@ -1,18 +1,24 @@
-SELECT l_orderkey,
-       sum(l_extendedprice * (1 - l_discount)) AS revenue,
+SELECT c_name,
+       c_custkey,
+       o_orderkey,
        o_orderdate,
-       o_shippriority
+       o_totalprice,
+       sum(l_quantity)
 FROM customer,
      orders,
      lineitem
-WHERE c_mktsegment = &&&
+WHERE o_orderkey IN
+    (SELECT l_orderkey
+     FROM lineitem
+     GROUP BY l_orderkey
+     HAVING sum(l_quantity) > ###_A)
   AND c_custkey = o_custkey
-  AND l_orderkey = o_orderkey
-  AND o_orderdate < date &&&
-  AND l_shipdate > date &&&
-GROUP BY l_orderkey,
+  AND o_orderkey = l_orderkey
+GROUP BY c_name,
+         c_custkey,
+         o_orderkey,
          o_orderdate,
-         o_shippriority
-ORDER BY revenue DESC,
+         o_totalprice
+ORDER BY o_totalprice DESC,
          o_orderdate
-LIMIT ###;
+LIMIT ###_B;

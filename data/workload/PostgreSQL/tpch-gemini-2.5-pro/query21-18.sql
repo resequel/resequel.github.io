@@ -1,0 +1,23 @@
+
+SELECT s.s_name,
+       count(*) AS numwait
+FROM
+  (SELECT l_orderkey,
+          max(CASE
+                  WHEN l_receiptdate > l_commitdate THEN l_suppkey
+              END) AS late_supp
+   FROM lineitem
+   GROUP BY l_orderkey
+   HAVING count(DISTINCT l_suppkey) > 1
+   AND count(DISTINCT CASE
+                          WHEN l_receiptdate > l_commitdate THEN l_suppkey
+                      END) = 1) ls
+JOIN orders o ON ls.l_orderkey = o.o_orderkey
+JOIN supplier s ON ls.late_supp = s.s_suppkey
+JOIN nation n ON s.s_nationkey = n.n_nationkey
+WHERE o.o_orderstatus = 'F'
+  AND n.n_name = 'SAUDI ARABIA'
+GROUP BY s.s_name
+ORDER BY numwait DESC,
+         s.s_name
+LIMIT 100;

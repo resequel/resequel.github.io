@@ -1,0 +1,16 @@
+
+SELECT c_count,
+       count(*) AS custdist
+FROM
+  (SELECT c.c_custkey,
+          COALESCE(o.c_count, 0) AS c_count
+   FROM customer c
+   LEFT JOIN
+     (SELECT o_custkey,
+             count(*) AS c_count
+      FROM orders
+      WHERE o_comment NOT LIKE &&&_A
+      GROUP BY o_custkey) o ON c.c_custkey = o.o_custkey) AS c_orders
+GROUP BY c_count
+ORDER BY custdist DESC,
+         c_count DESC;

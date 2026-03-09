@@ -1,12 +1,32 @@
-SELECT o_orderpriority,
-       count(*) AS order_count
-FROM orders
-WHERE o_orderdate >= date &&&
-  AND o_orderdate < date &&& + interval &&& MONTH
-  AND EXISTS
-    (SELECT *
-     FROM lineitem
-     WHERE l_orderkey = o_orderkey
-       AND l_commitdate < l_receiptdate)
-GROUP BY o_orderpriority
-ORDER BY o_orderpriority;
+SELECT supp_nation,
+       cust_nation,
+       l_year,
+       sum(volume) AS revenue
+FROM
+  (SELECT n1.n_name AS supp_nation,
+          n2.n_name AS cust_nation,
+          extract(YEAR
+                  FROM l_shipdate) AS l_year,
+          l_extendedprice * (###_A - l_discount) AS volume
+   FROM supplier,
+        lineitem,
+        orders,
+        customer,
+        nation n1,
+        nation n2
+   WHERE s_suppkey = l_suppkey
+     AND o_orderkey = l_orderkey
+     AND c_custkey = o_custkey
+     AND s_nationkey = n1.n_nationkey
+     AND c_nationkey = n2.n_nationkey
+     AND ((n1.n_name = &&&_A
+           AND n2.n_name = &&&_B)
+          OR (n1.n_name = &&&_C
+              AND n2.n_name = &&&_D))
+     AND l_shipdate BETWEEN date &&&_E AND date &&&_F) AS shipping
+GROUP BY supp_nation,
+         cust_nation,
+         l_year
+ORDER BY supp_nation,
+         cust_nation,
+         l_year;

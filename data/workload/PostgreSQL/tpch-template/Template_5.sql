@@ -1,36 +1,18 @@
-SELECT s_acctbal,
-       s_name,
-       n_name,
-       p_partkey,
-       p_mfgr,
-       s_address,
-       s_phone,
-       s_comment
-FROM part,
+SELECT ps_partkey,
+       sum(ps_supplycost * ps_availqty) AS value
+FROM partsupp,
      supplier,
-     partsupp,
-     nation,
-     region
-WHERE p_partkey = ps_partkey
-  AND s_suppkey = ps_suppkey
-  AND p_size = ###
-  AND p_type like &&&
+     nation
+WHERE ps_suppkey = s_suppkey
   AND s_nationkey = n_nationkey
-  AND n_regionkey = r_regionkey
-  AND r_name = &&&
-  AND ps_supplycost =
-    (SELECT min(ps_supplycost)
-     FROM partsupp,
-          supplier,
-          nation,
-          region
-     WHERE p_partkey = ps_partkey
-       AND s_suppkey = ps_suppkey
-       AND s_nationkey = n_nationkey
-       AND n_regionkey = r_regionkey
-       AND r_name = &&&)
-ORDER BY s_acctbal DESC,
-         n_name,
-         s_name,
-         p_partkey
-LIMIT ###;
+  AND n_name = &&&_A
+GROUP BY ps_partkey
+HAVING sum(ps_supplycost * ps_availqty) >
+  (SELECT sum(ps_supplycost * ps_availqty) * ^^^_A
+   FROM partsupp,
+        supplier,
+        nation
+   WHERE ps_suppkey = s_suppkey
+     AND s_nationkey = n_nationkey
+     AND n_name = &&&_B)
+ORDER BY value DESC;

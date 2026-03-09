@@ -438,7 +438,7 @@ def get_versions(dataset_name, query: str, dbms: str, number_of_versions:int, ll
     key,ds_name = get_key(dbms, dataset_name)
     query = format_sql(query)
 
-    verified_fname = f"{_rewrite_path}/{llm}/{dbms}/{ds_name}/Verify.dat"
+    verified_fname = f"{_rewrite_path}/{llm}/{dbms}/{ds_name}-Verify.dat"
     df_verify = None
     if os.path.exists(verified_fname):
         df_verify = pd.read_csv(verified_fname, low_memory=False, encoding='utf-8')

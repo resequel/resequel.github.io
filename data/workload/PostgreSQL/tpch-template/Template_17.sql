@@ -1,21 +1,25 @@
-SELECT p_brand,
-       p_type,
-       p_size,
-       count(DISTINCT ps_suppkey) AS supplier_cnt
-FROM partsupp,
-     part
-WHERE p_partkey = ps_partkey
-  AND p_brand <> &&&
-  AND p_type not like &&&
-  AND p_size IN (N_III)
-  AND ps_suppkey NOT IN
-    (SELECT s_suppkey
-     FROM supplier
-     WHERE s_comment like &&&)
-GROUP BY p_brand,
-         p_type,
-         p_size
-ORDER BY supplier_cnt DESC,
-         p_brand,
-         p_type,
-         p_size;
+SELECT cntrycode,
+       count(*) AS numcust,
+       sum(c_acctbal) AS totacctbal
+FROM
+  (SELECT substring(c_phone
+                    FROM ###_A
+                    FOR ###_B) AS cntrycode,
+          c_acctbal
+   FROM customer
+   WHERE substring(c_phone
+                   FROM ###_C
+                   FOR ###_D) IN N_SSS_A
+     AND c_acctbal >
+       (SELECT avg(c_acctbal)
+        FROM customer
+        WHERE c_acctbal > ^^^_A
+          AND substring(c_phone
+                        FROM ###_E
+                        FOR ###_F) IN N_SSS_B)
+     AND NOT EXISTS
+       (SELECT *
+        FROM orders
+        WHERE o_custkey = c_custkey)) AS custsale
+GROUP BY cntrycode
+ORDER BY cntrycode;
