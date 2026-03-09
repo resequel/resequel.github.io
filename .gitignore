@@ -19,3 +19,4 @@ server/venv/include/python3.10/greenlet
 server/venv/*
 server/venv/bin/*
 server/venv/include/site/python3.10/greenlet/g*
+server/__pycache__/wsgi.cpython-310.pyc
