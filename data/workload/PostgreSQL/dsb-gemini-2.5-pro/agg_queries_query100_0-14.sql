@@ -1,0 +1,29 @@
+
+SELECT item1.i_item_sk,
+       item2.i_item_sk,
+       count(*) AS cnt
+FROM item AS item1,
+     item AS item2,
+     store_sales AS s1,
+     store_sales AS s2,
+     date_dim,
+     customer,
+     customer_demographics
+WHERE item1.i_item_sk < item2.i_item_sk
+  AND s1.ss_ticket_number = s2.ss_ticket_number
+  AND s1.ss_item_sk = item1.i_item_sk
+  AND s2.ss_item_sk = item2.i_item_sk
+  AND s1.ss_customer_sk = c_customer_sk
+  AND c_current_cdemo_sk = cd_demo_sk
+  AND d_year BETWEEN 1998 AND 1998 + 1
+  AND d_date_sk = s1.ss_sold_date_sk
+  AND item1.i_category IN ('Jewelry',
+                           'Music')
+  AND item2.i_manager_id BETWEEN 77 AND 96
+  AND cd_marital_status = 'W'
+  AND cd_education_status = 'Primary'
+  AND s1.ss_list_price BETWEEN 236 AND 250
+  AND s2.ss_list_price BETWEEN 236 AND 250
+GROUP BY item1.i_item_sk,
+         item2.i_item_sk
+ORDER BY cnt;

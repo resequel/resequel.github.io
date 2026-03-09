@@ -1,0 +1,39 @@
+
+SELECT min(ss_quantity),
+       min(ss_ext_sales_price),
+       min(ss_ext_wholesale_cost)
+FROM store_sales
+INNER JOIN store ON s_store_sk = ss_store_sk
+INNER JOIN date_dim ON ss_sold_date_sk = d_date_sk
+AND d_year = 2001
+WHERE EXISTS
+    (SELECT 1
+     FROM customer_demographics,
+          household_demographics
+     WHERE ss_cdemo_sk = cd_demo_sk
+       AND ss_hdemo_sk = hd_demo_sk
+       AND ((cd_marital_status = 'U'
+             AND cd_education_status = 'College'
+             AND ss_sales_price BETWEEN 100.00 AND 150.00
+             AND hd_dep_count = 3)
+            OR (cd_marital_status = 'W'
+                AND cd_education_status = '2 yr Degree'
+                AND ss_sales_price BETWEEN 50.00 AND 100.00
+                AND hd_dep_count = 1)
+            OR (cd_marital_status = 'S'
+                AND cd_education_status = 'College'
+                AND ss_sales_price BETWEEN 150.00 AND 200.00
+                AND hd_dep_count = 1)))
+  AND EXISTS
+    (SELECT 1
+     FROM customer_address
+     WHERE ss_addr_sk = ca_address_sk
+       AND ((ca_country = 'United States'
+             AND ca_state IN (('IN', 'NM', 'VA'))
+             AND ss_net_profit BETWEEN 100 AND 200)
+            OR (ca_country = 'United States'
+                AND ca_state IN (('MT', 'OH', 'OR'))
+                AND ss_net_profit BETWEEN 150 AND 300)
+            OR (ca_country = 'United States'
+                AND ca_state IN (('GA', 'IL', 'TX'))
+                AND ss_net_profit BETWEEN 50 AND 250)));

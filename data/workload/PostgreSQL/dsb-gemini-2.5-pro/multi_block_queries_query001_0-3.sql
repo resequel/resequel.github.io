@@ -1,0 +1,37 @@
+WITH customer_total_return AS
+  (SELECT sr_customer_sk,
+          sr_store_sk,
+          sr_reason_sk,
+          SUM(sr_refunded_cash) AS ctr_total_return
+   FROM store_returns
+   JOIN date_dim ON sr_returned_date_sk = d_date_sk
+   WHERE d_year = 2001
+     AND sr_return_amt / sr_return_quantity BETWEEN 236 AND 295
+   GROUP BY sr_customer_sk,
+            sr_store_sk,
+            sr_reason_sk),
+     store_avg_return AS
+  (SELECT ctr_store_sk,
+          AVG(ctr_total_return) AS avg_return
+   FROM customer_total_return
+   GROUP BY ctr_store_sk)
+SELECT c_customer_id
+FROM customer_total_return ctr
+JOIN store_avg_return sar ON ctr.ctr_store_sk = sar.ctr_store_sk
+JOIN store s ON s.s_store_sk = ctr.ctr_store_sk
+JOIN customer c ON c.c_customer_sk = ctr.ctr_customer_sk
+JOIN customer_demographics cd ON c.c_current_cdemo_sk = cd.cd_demo_sk
+WHERE ctr.ctr_total_return > sar.avg_return * 1.2
+  AND ctr.ctr_reason_sk BETWEEN 28 AND 31
+  AND s.s_state IN ('MI',
+                  'NC',
+                  'WI')
+  AND cd.cd_marital_status IN ('W',
+                            'W')
+  AND cd.cd_education_status IN ('4 yr Degree',
+                              'College')
+  AND cd.cd_gender = 'M'
+  AND c.c_birth_month = 5
+  AND c.c_birth_year BETWEEN 1950 AND 1956
+ORDER BY c_customer_id
+LIMIT 100;
